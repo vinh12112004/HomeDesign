@@ -63,6 +63,7 @@ export default function CanvasPage() {
           length={length}
           height={height}
           controlsRef={controlsRef}
+          viewMode={viewMode}
         />
 
         {/* Overlay components (ví dụ: nút view mode) — không che canvas interactive */}

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Canvas, useFrame, useLoader  } from '@react-three/fiber';
-import { PointerLockControls, KeyboardControls, useKeyboardControls } from '@react-three/drei';
+import { PointerLockControls, KeyboardControls, useKeyboardControls, OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { TextureLoader } from 'three';
@@ -37,7 +37,7 @@ const PlayerMovement = ({ controlsRef }) => {
   return <PointerLockControls ref={controlsRef} />; 
 };
 
-const RoomScene = ({ width, length, height, controlsRef }) => {
+const RoomScene = ({ width, length, height, controlsRef, viewMode }) => {
   const floorTexture = useLoader(TextureLoader, '/textures/floor.png');
   const repeatX = width / 2;
   const repeatY = length / 2;
@@ -96,7 +96,7 @@ const RoomScene = ({ width, length, height, controlsRef }) => {
       <Canvas camera={{ position: [0, 1.7, 0], fov: 75 }} 
               shadows
               onClick={handleCanvasClick}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: viewMode === 'free' ? 'pointer' : 'grab' }}
               >
         <ambientLight intensity={0.5} />
         <directionalLight
@@ -121,22 +121,31 @@ const RoomScene = ({ width, length, height, controlsRef }) => {
         {/* Walls */}
         <mesh position={[-width / 2, height / 2, 0]} castShadow>
           <boxGeometry args={[0.1, height, length]} />
-          <meshStandardMaterial color="lightblue" />
+          <meshStandardMaterial color="#F8F8FF" />
         </mesh>
         <mesh position={[width / 2, height / 2, 0]} castShadow>
           <boxGeometry args={[0.1, height, length]} />
-          <meshStandardMaterial color="lightblue" />
+          <meshStandardMaterial color="#F8F8FF" />
         </mesh>
         <mesh position={[0, height / 2, -length / 2]} rotation={[0, Math.PI / 2, 0]} castShadow>
           <boxGeometry args={[0.1, height, width]} />
-          <meshStandardMaterial color="lightblue" />
+          <meshStandardMaterial color="#F8F8FF" />
         </mesh>
         <mesh position={[0, height / 2, length / 2]} rotation={[0, Math.PI / 2, 0]} castShadow>
           <boxGeometry args={[0.1, height, width]} />
-          <meshStandardMaterial color="lightblue" />
+          <meshStandardMaterial color="#F8F8FF" />
         </mesh>
 
-        <PlayerMovement controlsRef={controlsRef} />
+        {/* Conditional Controls based on viewMode */}
+        {viewMode === 'free' ? (
+          <PlayerMovement controlsRef={controlsRef} />
+        ) : (
+          <OrbitControls 
+            target={[0, height / 2, 0]} // Look at the center of the room
+            enablePan={true} // Allow right-click panning
+            enableDamping // Smooths out the camera movement
+          />
+        )}
       </Canvas>
     </KeyboardControls>
   );

@@ -1,53 +1,145 @@
-import React from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Box, Plane } from '@react-three/drei';
+import React, { useRef, useEffect } from 'react';
+import { Canvas, useFrame, useLoader  } from '@react-three/fiber';
+import { PointerLockControls, KeyboardControls, useKeyboardControls } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
+import * as THREE from 'three';
+import { TextureLoader } from 'three';
 
-function Room({ width, length, height }) {
-  const wallThickness = 0.1;
+const PlayerMovement = ({ controlsRef }) => {
+  const { camera } = useThree();
+  const [sub, get] = useKeyboardControls();
+  const velocity = useRef(new THREE.Vector3());
+  const speed = 5;
 
-  return (
-    <>
-      {/* Sàn nhà */}
-      <Plane args={[width, length]} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <meshStandardMaterial color="#f0f0f0" />
-      </Plane>
+  useEffect(() => {
+    return sub(
+      (state) => state,
+      (pressed) => {
+        const { forward, backward, left, right, jump } = get();
+        velocity.current.x = (right ? 1 : 0) - (left ? 1 : 0);
+        velocity.current.z = (backward ? 1 : 0) - (forward ? 1 : 0);
+      }
+    );
+  }, [get, sub]);
 
-      {/* Tường sau */}
-      <Box args={[width, height, wallThickness]} position={[0, height / 2, -length / 2]}>
-        <meshStandardMaterial color="lightblue" />
-      </Box>
+  useFrame((_, delta) => {
+    if (controlsRef.current && controlsRef.current.isLocked) {
+      const moveDirection = new THREE.Vector3(velocity.current.x, 0, velocity.current.z);
+      moveDirection.applyQuaternion(camera.quaternion);
 
-      {/* Tường trái */}
-      <Box args={[length, height, wallThickness]} rotation={[0, Math.PI / 2, 0]} position={[-width / 2, height / 2, 0]}>
-        <meshStandardMaterial color="lightgreen" />
-      </Box>
+      if (moveDirection.length() > 0) {
+        const moveVector = moveDirection.normalize().multiplyScalar(speed * delta);
+        camera.position.add(moveVector);
+      }
+    }
+  });
 
-      {/* Tường phải */}
-      <Box args={[length, height, wallThickness]} rotation={[0, Math.PI / 2, 0]} position={[width / 2, height / 2, 0]}>
-        <meshStandardMaterial color="lightpink" />
-      </Box>
-    </>
-  );
-}
+  return <PointerLockControls ref={controlsRef} />; 
+};
 
-export default function RoomScene({ width, length, height }) {
-  return (
-    <Canvas
-      camera={{ position: [width, height * 1.5, length * 1.5], fov: 50 }}
-      style={{ background: '#e0e0e0' }}
-    >
-      {/* Ánh sáng môi trường */}
-      <ambientLight intensity={0.5} />
-      {/* Ánh sáng từ một hướng, tạo bóng */}
-      <directionalLight position={[10, 15, 5]} intensity={1} />
+const RoomScene = ({ width, length, height, controlsRef }) => {
+  const floorTexture = useLoader(TextureLoader, '/textures/floor.png');
+  const repeatX = width / 2;
+  const repeatY = length / 2;
+
+  floorTexture.wrapS = THREE.RepeatWrapping;
+  floorTexture.wrapT = THREE.RepeatWrapping;
+  floorTexture.repeat.set(repeatX, repeatY);
+
+  const canvasRef = useRef();
+  const containerRef = useRef()
+  useEffect(() => {
+    const handleClick = (e) => {
+      // Kiểm tra xem click có phải từ canvas không
+      // Bỏ qua nếu click vào element có pointer-events: auto (UI overlay)
+      const isCanvas = e.target.tagName === 'CANVAS';
       
-      <Room width={width} length={length} height={height} />
+      if (isCanvas && controlsRef.current && !controlsRef.current.isLocked) {
+        controlsRef.current.lock();
+      }
+    };
 
-      {/* Điều khiển camera: cho phép xoay, zoom, di chuyển */}
-      <OrbitControls />
+    const container = containerRef.current;
+    if (container) {
+      // Sử dụng capture phase để bắt event trước khi bubble
+      container.addEventListener('click', handleClick, true);
+    }
 
-      {/* Lưới tọa độ để dễ hình dung */}
-      <gridHelper args={[100, 100]} />
-    </Canvas>
+    return () => {
+      if (container) {
+        container.removeEventListener('click', handleClick, true);
+      }
+      
+      if (canvasRef.current && canvasRef.current.renderer) {
+        console.log('🧹 Disposing WebGLRenderer...');
+        canvasRef.current.renderer.dispose();
+      }
+    };
+  }, [controlsRef]);
+  
+  const handleCanvasClick = (e) => {
+    if (e.target.tagName === 'CANVAS' && controlsRef.current && !controlsRef.current.isLocked) {
+      controlsRef.current.lock();
+    }
+  };
+
+  return (
+    <KeyboardControls
+      map={[
+        { name: 'forward', keys: ['ArrowUp', 'w', 'W'] },
+        { name: 'backward', keys: ['ArrowDown', 's', 'S'] },
+        { name: 'left', keys: ['ArrowLeft', 'a', 'A'] },
+        { name: 'right', keys: ['ArrowRight', 'd', 'D'] },
+        { name: 'jump', keys: ['Space'] },
+      ]}
+    >
+      <Canvas camera={{ position: [0, 1.7, 0], fov: 75 }} 
+              shadows
+              onClick={handleCanvasClick}
+              style={{ cursor: 'pointer' }}
+              >
+        <ambientLight intensity={0.5} />
+        <directionalLight
+          castShadow
+          position={[5, 10, 7.5]}
+          intensity={1}
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+          shadow-camera-far={50}
+          shadow-camera-left={-10}
+          shadow-camera-right={10}
+          shadow-camera-top={10}
+          shadow-camera-bottom={-10}
+        />
+
+        {/* Floor */}
+        <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+          <planeGeometry args={[width, length]} />
+          <meshStandardMaterial map={floorTexture} color="white" /> 
+        </mesh>
+
+        {/* Walls */}
+        <mesh position={[-width / 2, height / 2, 0]} castShadow>
+          <boxGeometry args={[0.1, height, length]} />
+          <meshStandardMaterial color="lightblue" />
+        </mesh>
+        <mesh position={[width / 2, height / 2, 0]} castShadow>
+          <boxGeometry args={[0.1, height, length]} />
+          <meshStandardMaterial color="lightblue" />
+        </mesh>
+        <mesh position={[0, height / 2, -length / 2]} rotation={[0, Math.PI / 2, 0]} castShadow>
+          <boxGeometry args={[0.1, height, width]} />
+          <meshStandardMaterial color="lightblue" />
+        </mesh>
+        <mesh position={[0, height / 2, length / 2]} rotation={[0, Math.PI / 2, 0]} castShadow>
+          <boxGeometry args={[0.1, height, width]} />
+          <meshStandardMaterial color="lightblue" />
+        </mesh>
+
+        <PlayerMovement controlsRef={controlsRef} />
+      </Canvas>
+    </KeyboardControls>
   );
-}
+};
+
+export default RoomScene;

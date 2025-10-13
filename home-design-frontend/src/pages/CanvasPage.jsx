@@ -1,13 +1,21 @@
-import React from 'react';
+import { useState, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Button, Empty } from 'antd';
 import RoomScene from '../components/canvas/RoomScene';
+import CanvasHeader from '../components/canvas/CanvasHeader';
+import SideMenu from '../components/canvas/SideMenu';
+import ViewModeToggle from '../components/canvas/ViewModeToggle';
 
 export default function CanvasPage() {
   const location = useLocation();
-  const { project } = location.state || {}; // Lấy project từ state được truyền qua
+  const { project } = location.state || {};
+  const controlsRef = useRef();
+  const [viewMode, setViewMode] = useState('free');
 
-  // Nếu không có project (ví dụ: người dùng vào thẳng URL)
+  const toggleViewMode = () => {
+    setViewMode(prev => (prev === 'fixed' ? 'free' : 'fixed'));
+  };
+
   if (!project) {
     return (
       <div style={{ textAlign: 'center', marginTop: 100 }}>
@@ -23,20 +31,47 @@ export default function CanvasPage() {
   const { name, width, length, height } = project;
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>Canvas for: {name}</h1>
-      <p>
-        Initializing 3D scene with dimensions:
-        <strong> Width:</strong> {width}m,
-        <strong> Length:</strong> {length}m,
-        <strong> Height:</strong> {height}m.
-      </p>
-      <div style={{ flex: 1, width: '100%', height: '70vh'}}>
-        <RoomScene width={width} length={length} height={height} />
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',        // chiếm full màn hình
+        overflow: 'hidden',     // không cuộn
+      }}
+    >
+      {/* Header cố định trên cùng */}
+      <div style={{ flexShrink: 0 }}>
+        <CanvasHeader projectName={name} />
       </div>
-      <Link to="/">
-        <Button style={{ marginTop: 24 }}>Back to All Projects</Button>
-      </Link>
+
+      {/* Side menu bar ngay dưới header (chiều cao cố định) */}
+      <div style={{ flexShrink: 0 }}>
+        <SideMenu />
+      </div>
+
+      {/* Canvas chiếm phần còn lại */}
+      <div
+        style={{
+          flexGrow: 1,
+          position: 'relative',
+          overflow: 'hidden',
+          background: '#000',
+        }}
+      >
+        <RoomScene
+          width={width}
+          length={length}
+          height={height}
+          controlsRef={controlsRef}
+        />
+
+        {/* Overlay components (ví dụ: nút view mode) — không che canvas interactive */}
+        <div style={{ pointerEvents: 'none', position: 'absolute', inset: 0 }}>
+          <div style={{ pointerEvents: 'auto' }}>
+            <ViewModeToggle mode={viewMode} onToggle={toggleViewMode} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

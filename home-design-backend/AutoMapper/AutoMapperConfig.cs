@@ -8,10 +8,10 @@ namespace home_design_backend.AutoMapper
     {
         public AutoMapperConfig()
         {
-            CreateMap<Room, RoomDTO>();
-            CreateMap<RoomObject, RoomObjectDto>();
-            CreateMap<RoomDTO, Room>();
-            CreateMap<RoomObjectDto, RoomObject>();
+            CreateMap<Project, ProjectDTO>();
+            CreateMap<ProjectObject, ProjectObjectDto>();
+            CreateMap<ProjectDTO, Project>();
+            CreateMap<ProjectObjectDto, ProjectObject>();
         }
     }
 }

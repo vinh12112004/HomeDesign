@@ -14,15 +14,15 @@ namespace HomeDesign.Backend.Controllers
     [Route("api/[controller]")]
     public class ProjectController : ControllerBase
     {
-        private readonly IRoomRepository _roomRepository;
+        private readonly IProjectRepository _roomRepository;
 
-        public ProjectController(IRoomRepository roomRepository)
+        public ProjectController(IProjectRepository roomRepository)
         {
            _roomRepository = roomRepository;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateRoom([FromBody] RoomDTO room)
+        public async Task<IActionResult> CreateRoom([FromBody] ProjectDTO room)
         {
             await _roomRepository.CreateAsync(room);
             return Ok("Create Success");
@@ -44,7 +44,7 @@ namespace HomeDesign.Backend.Controllers
             return Ok(room);
         }
         [HttpPut]
-        public async Task<IActionResult> Update(Guid id, [FromBody] RoomDTO room)
+        public async Task<IActionResult> Update(Guid id, [FromBody] ProjectDTO room)
         {
             return Ok(await _roomRepository.UpdateAsync(id, room));
         }

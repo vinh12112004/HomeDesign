@@ -1,9 +1,13 @@
-﻿namespace home_design_backend.DTOs
+﻿namespace home_design_backend.Models
 {
-    public class RoomObjectDto
+    public class ProjectObject
     {
+        public Guid Id { get; set; }
+        public Guid ProjectId { get; set; }
+        public Project Project { get; set; }
         public string Type { get; set; }
         public string AssetKey { get; set; }
+
         public string PositionJson { get; set; }
         public string RotationJson { get; set; }
         public string ScaleJson { get; set; }

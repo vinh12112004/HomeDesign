@@ -32,7 +32,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddAutoMapper(typeof(AutoMapperConfig));
 
-builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IProjectObjectsRepository, ProjectObjectsRepository>();
 
 var app = builder.Build();
 

@@ -64,6 +64,7 @@ export default function CanvasPage() {
           height={height}
           controlsRef={controlsRef}
           viewMode={viewMode}
+          projectId={project.id}
         />
 
         {/* Overlay components (ví dụ: nút view mode) — không che canvas interactive */}

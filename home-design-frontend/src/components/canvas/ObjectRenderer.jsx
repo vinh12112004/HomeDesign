@@ -3,8 +3,9 @@ import { useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
 import SelectableObject from './SelectableObject';
+import { useSelector } from 'react-redux';
 
-const ObjectRenderer = ({ objectData, viewMode, onHoverChange, hoveredMesh }) => {
+const ObjectRenderer = ({ objectData }) => {
   const { 
     id,
     type,
@@ -14,6 +15,8 @@ const ObjectRenderer = ({ objectData, viewMode, onHoverChange, hoveredMesh }) =>
     scaleJson,
     metadataJson
   } = objectData;
+  
+  const { hoveredMesh, selectedMesh } = useSelector(state => state.ui);
 
   // Parse JSON data
   const position = useMemo(() => {
@@ -46,7 +49,6 @@ const ObjectRenderer = ({ objectData, viewMode, onHoverChange, hoveredMesh }) =>
     if (type === 'Floor') {
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
-      // Repeat texture dựa trên kích thước floor
       const repeatX = metadata.width / 2;
       const repeatY = metadata.length / 2;
       tex.repeat.set(repeatX, repeatY);
@@ -54,19 +56,32 @@ const ObjectRenderer = ({ objectData, viewMode, onHoverChange, hoveredMesh }) =>
     return tex;
   }, [texture, type, metadata]);
 
-  // Tính toán material properties
+  // Tính toán material properties với selected state
   const materialProps = useMemo(() => {
-    const isHovered = hoveredMesh && hoveredMesh.userData?.objectId === id;
+    const isHovered = hoveredMesh === id;
+    const isSelected = selectedMesh === id;
+    const baseColor = metadata.color;
+
+    let emissiveColor = "#000000";
+    let emissiveIntensity = 0;
+    
+    if (isSelected) {
+      emissiveColor = "#0066ff"; // Màu xanh cho selected
+      emissiveIntensity = 0.3;
+    } else if (isHovered) {
+      emissiveColor = "#ffff00"; // Màu vàng cho hover
+      emissiveIntensity = 0.2;
+    }
     
     return {
-      color: type === 'Floor' ? '#FFFFFF' : '#F8F8FF',
+      color: baseColor,
       roughness: 0.8,
       metalness: 0.1,
       map: configuredTexture,
-      emissive: isHovered ? "white" : "black",
-      emissiveIntensity: isHovered ? 0.3 : 0
+      emissive: emissiveColor,
+      emissiveIntensity: emissiveIntensity
     };
-  }, [type, configuredTexture, hoveredMesh, id]);
+  }, [type, configuredTexture, hoveredMesh, selectedMesh, id]);
 
   // Render geometry dựa trên assetKey và metadata
   const renderGeometry = () => {
@@ -76,7 +91,6 @@ const ObjectRenderer = ({ objectData, viewMode, onHoverChange, hoveredMesh }) =>
       return <boxGeometry args={[metadata.sizeX, metadata.sizeY, metadata.sizeZ]} />;
     }
     
-    // Default fallback
     return <boxGeometry args={[1, 1, 1]} />;
   };
 
@@ -84,7 +98,7 @@ const ObjectRenderer = ({ objectData, viewMode, onHoverChange, hoveredMesh }) =>
   const shouldReceiveShadow = type === 'Floor';
 
   return (
-    <SelectableObject viewMode={viewMode} onHoverChange={onHoverChange}>
+    <SelectableObject>
       <mesh 
         position={position} 
         rotation={rotation} 

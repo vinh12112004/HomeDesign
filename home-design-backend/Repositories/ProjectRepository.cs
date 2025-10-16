@@ -83,7 +83,8 @@ namespace home_design_backend.Repositories
                     geometry = "plane",
                     width,
                     length,
-                    texture = "/textures/floor.png"
+                    texture = "/textures/floor.png",
+                    color = "#F8F8FF"
                 })
             });
 
@@ -102,7 +103,8 @@ namespace home_design_backend.Repositories
                     geometry = "box",
                     sizeX = wallThickness,
                     sizeY = height,
-                    sizeZ = length
+                    sizeZ = length,
+                    color = "#F8F8FF"
                 })
             });
 
@@ -121,7 +123,8 @@ namespace home_design_backend.Repositories
                     geometry = "box",
                     sizeX = wallThickness,
                     sizeY = height,
-                    sizeZ = length
+                    sizeZ = length,
+                    color = "#F8F8FF"
                 })
             });
 
@@ -140,7 +143,8 @@ namespace home_design_backend.Repositories
                     geometry = "box",
                     sizeX = wallThickness,
                     sizeY = height,
-                    sizeZ = width
+                    sizeZ = length,
+                    color = "#F8F8FF"
                 })
             });
 
@@ -159,7 +163,8 @@ namespace home_design_backend.Repositories
                     geometry = "box",
                     sizeX = wallThickness,
                     sizeY = height,
-                    sizeZ = width
+                    sizeZ = length,
+                    color = "#F8F8FF"
                 })
             });
         }

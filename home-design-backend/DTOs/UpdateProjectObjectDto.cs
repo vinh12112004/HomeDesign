@@ -1,8 +1,7 @@
 ﻿namespace home_design_backend.DTOs
 {
-    public class ProjectObjectDto
+    public class UpdateProjectObjectDto
     {
-        public Guid Id { get; set; }
         public string Type { get; set; } = string.Empty;
         public string AssetKey { get; set; } = string.Empty;
         public string PositionJson { get; set; } = string.Empty;

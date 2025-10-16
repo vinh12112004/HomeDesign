@@ -1,8 +1,23 @@
 import React from "react";
 import { Modal, Form, Input, InputNumber, Radio, Row, Col } from "antd";
+import { useDispatch, useSelector } from 'react-redux';
+import { createProject } from '../../store/slices/projectSlice';
 
-const NewProjectModal = ({ visible, onCreate, onCancel }) => {
+const NewProjectModal = ({ visible, onCancel }) => {
+  const dispatch = useDispatch();
+  const { isCreating } = useSelector(state => state.projects);
   const [form] = Form.useForm();
+
+  const handleCreate = async (values) => {
+    try {
+      await dispatch(createProject(values)).unwrap();
+      form.resetFields();
+      onCancel(); // Close modal on success
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      // Error message được handle ở AllProjectsPage
+    }
+  };
 
   return (
     <Modal
@@ -11,12 +26,12 @@ const NewProjectModal = ({ visible, onCreate, onCancel }) => {
       okText="Create"
       cancelText="Cancel"
       onCancel={onCancel}
+      confirmLoading={isCreating}
       onOk={() => {
         form
           .validateFields()
           .then((values) => {
-            form.resetFields();
-            onCreate(values);
+            handleCreate(values);
           })
           .catch((info) => {
             console.log("Validate Failed:", info);
@@ -27,7 +42,7 @@ const NewProjectModal = ({ visible, onCreate, onCancel }) => {
         form={form}
         layout="vertical"
         name="form_in_modal"
-        initialValues={{ status: "private" }} // Mặc định status là private
+        initialValues={{ status: "private" }}
       >
         <Form.Item
           name="name"

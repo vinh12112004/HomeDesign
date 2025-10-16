@@ -1,18 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProjects, clearError } from '../store/slices/projectSlice';
 import Sidebar from "../components/layout/Sidebar";
 import Header from "../components/layout/Header";
 import ProjectTable from "../components/projects/ProjectTable";
 import { Button, Input, message } from "antd";
 import { FilterOutlined, SearchOutlined } from "@ant-design/icons";
 import NewProjectModal from "../components/projects/NewProjectModal";
-import { useProject } from "../hooks/useProject";
 
 export default function AllProjectsPage() {
+  const dispatch = useDispatch();
+  const { isCreating, error } = useSelector(state => state.projects);
+  
   const [collapsed, setCollapsed] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [messageApi, messageContextHolder] = message.useMessage();
 
-  const { projects, loading, isCreating, createProject, fetchProjects, isDeleting, deleteProject } = useProject();
+  useEffect(() => {
+    dispatch(fetchProjects());
+  }, [dispatch]);
+
+  // Show error message when error occurs
+  useEffect(() => {
+    if (error) {
+      messageApi.error(error);
+      dispatch(clearError());
+    }
+  }, [error, messageApi, dispatch]);
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
@@ -24,17 +38,6 @@ export default function AllProjectsPage() {
 
   const handleCancel = () => {
     setIsModalVisible(false);
-  };
-
-  const handleCreate = async (values) => {
-    try {
-      await createProject(values);
-      setIsModalVisible(false);
-      await fetchProjects();
-      messageApi.success("Project created successfully!");
-    } catch (error) {
-      messageApi.error("Failed to create project. Please try again.");
-    }
   };
 
   return (
@@ -60,15 +63,17 @@ export default function AllProjectsPage() {
               placeholder="Search project..."
               style={{ width: 260 }}
             />
-            <Button type="primary" onClick={showModal}>New Project</Button>
+            <Button type="primary" onClick={showModal} loading={isCreating}>
+              New Project
+            </Button>
             <Button icon={<FilterOutlined />}>Filter</Button>
           </div>
-          <ProjectTable projects={projects} loading={loading} isDeleting={isDeleting} deleteProject={deleteProject} fetchProjects={fetchProjects} />
+          
+          <ProjectTable />
+          
           <NewProjectModal
             visible={isModalVisible}
-            onCreate={handleCreate}
             onCancel={handleCancel}
-            confirmLoading={isCreating}
           />
         </main>
       </div>

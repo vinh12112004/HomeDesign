@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using home_design_backend.Data;
+using home_design_backend.DTOs;
 using home_design_backend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,9 +15,25 @@ namespace home_design_backend.Repositories
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        public async Task<List<ProjectObject>> GetAsync(Guid id)
+        public async Task<List<ProjectObjectDto>> GetAsync(Guid projectId)
         {
-            return await _dbContext.ProjectObjects.Where(po => po.ProjectId == id).ToListAsync();
+            var lpo = await _dbContext.ProjectObjects.Where(po => po.ProjectId == projectId).ToListAsync();
+            var lpodto = _mapper.Map<List<ProjectObjectDto>>(lpo);
+            return lpodto;
+        }
+        public async Task<ProjectObject?> UpdateAsync(Guid id, UpdateProjectObjectDto updateDto)
+        {
+            var existingObject = await _dbContext.ProjectObjects
+                .FirstOrDefaultAsync(po => po.Id == id);
+
+            if (existingObject == null)
+                return null;
+
+            _mapper.Map(updateDto, existingObject);
+            _dbContext.Update(existingObject);
+
+            await _dbContext.SaveChangesAsync();
+            return existingObject;
         }
     }
 }

@@ -11,8 +11,8 @@ const objectProjectApi = {
     return axiosClient.post(url, objectData);
   },
   
-  update: (projectId, objectId, objectData) => {
-    const url = `/ProjectObjects/${projectId}/${objectId}`;
+  update: (objectId, objectData) => {
+    const url = `/ProjectObjects/${objectId}`;
     return axiosClient.put(url, objectData);
   },
   

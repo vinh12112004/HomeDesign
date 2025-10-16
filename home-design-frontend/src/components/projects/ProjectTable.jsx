@@ -1,6 +1,8 @@
 import React from "react";
-import { Table, Tag, Dropdown, Alert, Modal, message  } from "antd";
+import { Table, Tag, Dropdown, Alert, Modal, message } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteProject, setCurrentProject } from '../../store/slices/projectSlice';
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +14,9 @@ const menuItems = [
   { key: 'delete', label: <span style={{ color: 'red' }}>Move to Trash</span>, danger: true },
 ];
 
-export default function ProjectTable({ projects, loading, error, fetchProjects, deleteProject }) {
+export default function ProjectTable() {
+  const dispatch = useDispatch();
+  const { projects, loading, isDeleting, error } = useSelector(state => state.projects);
   const [modal, contextHolder] = Modal.useModal();
   const [messageApi, messageContextHolder] = message.useMessage();
   const navigate = useNavigate();
@@ -25,7 +29,8 @@ export default function ProjectTable({ projects, loading, error, fetchProjects, 
     switch (e.key) {
       case 'open':
         console.log("Opening project:", record);
-        navigate('/canvas', { state: { project: record } });
+        dispatch(setCurrentProject(record));
+        navigate('/canvas');
         break;
       
       case 'rename':
@@ -42,7 +47,7 @@ export default function ProjectTable({ projects, loading, error, fetchProjects, 
     }
   };
 
-  const showDeleteConfirm = ( record) => {
+  const showDeleteConfirm = (record) => {
     modal.confirm({
       title: `Are you sure you want to delete "${record.name}"?`,
       icon: <ExclamationCircleOutlined />,
@@ -53,8 +58,7 @@ export default function ProjectTable({ projects, loading, error, fetchProjects, 
       onOk: async () => {
         try {
           console.log(`Confirmed deletion for project:`, record);
-          await deleteProject(record.id);
-          await fetchProjects();
+          await dispatch(deleteProject(record.id)).unwrap();
           messageApi.success("Project deleted successfully!");
         } catch (error) {
           messageApi.error("Failed to delete project. Please try again.");
@@ -95,7 +99,7 @@ export default function ProjectTable({ projects, loading, error, fetchProjects, 
       key: 'actions',
       align: 'center',
       render: (record) => (
-        <Dropdown menu={{ items: menuItems , onClick: (e) => handleMenuClick(e,record)}} trigger={['click']}>
+        <Dropdown menu={{ items: menuItems, onClick: (e) => handleMenuClick(e, record) }} trigger={['click']}>
           <a onClick={(e) => e.preventDefault()}>
             <EllipsisOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
           </a>
@@ -111,7 +115,7 @@ export default function ProjectTable({ projects, loading, error, fetchProjects, 
       <Table 
         dataSource={projects}
         columns={columns} 
-        loading={loading}
+        loading={loading || isDeleting}
         pagination={{ pageSize: 10 }}
         rowKey="id"
       />

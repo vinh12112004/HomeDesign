@@ -1,81 +1,37 @@
-import React from 'react';
-import * as THREE from 'three';
-import { useLoader } from '@react-three/fiber';
-import { TextureLoader } from 'three';
-import SelectableObject from './SelectableObject';
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchObjects } from '../../store/slices/objectSlice';
+import ObjectRenderer from './ObjectRenderer';
 
-const RoomStructure = ({ width, length, height, viewMode, onHoverChange, hoveredMesh }) => {
-  const floorTexture = useLoader(TextureLoader, '/textures/floor.png');
-  const repeatX = width / 2;
-  const repeatY = length / 2;
+const RoomStructure = () => {
+  const dispatch = useDispatch();
+  const { objects, loading, error } = useSelector(state => state.objects);
+  const { currentProject } = useSelector(state => state.projects);
+  const projectId = currentProject ? currentProject.id : null;
+  useEffect(() => {
+    if (projectId) {
+      dispatch(fetchObjects(projectId));
+    }
+  }, [dispatch, projectId]);
 
-  floorTexture.wrapS = THREE.RepeatWrapping;
-  floorTexture.wrapT = THREE.RepeatWrapping;
-  floorTexture.repeat.set(repeatX, repeatY);
+  if (loading) {
+    return null; // Có thể thêm loading component ở đây
+  }
+
+  if (error && objects.length === 0) {
+    console.error('Failed to load objects:', error);
+    return null;
+  }
 
   return (
-    <>
-      {/* Floor */}
-      <SelectableObject viewMode={viewMode} onHoverChange={onHoverChange} hoveredMesh={hoveredMesh}>
-        <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[width, length]} />
-          <meshStandardMaterial 
-            map={floorTexture} 
-            color="white"
-            emissive={hoveredMesh && hoveredMesh.type === 'Mesh' && hoveredMesh.geometry.type === 'PlaneGeometry' ? "white" : "black"}
-            emissiveIntensity={hoveredMesh && hoveredMesh.type === 'Mesh' && hoveredMesh.geometry.type === 'PlaneGeometry' ? 0.3 : 0}
-          />
-        </mesh>
-      </SelectableObject>
-
-      {/* Wall 1 */}
-      <SelectableObject viewMode={viewMode} onHoverChange={onHoverChange} hoveredMesh={hoveredMesh}>
-        <mesh position={[-width / 2, height / 2, 0]} castShadow>
-          <boxGeometry args={[0.1, height, length]} />
-          <meshStandardMaterial 
-            color="#F8F8FF"
-            emissive={hoveredMesh && hoveredMesh.position?.x === -width / 2 ? "white" : "black"}
-            emissiveIntensity={hoveredMesh && hoveredMesh.position?.x === -width / 2 ? 0.3 : 0}
-          />
-        </mesh>
-      </SelectableObject>
-
-      {/* Wall 2 */}
-      <SelectableObject viewMode={viewMode} onHoverChange={onHoverChange} hoveredMesh={hoveredMesh}>
-        <mesh position={[width / 2, height / 2, 0]} castShadow>
-          <boxGeometry args={[0.1, height, length]} />
-          <meshStandardMaterial 
-            color="#F8F8FF"
-            emissive={hoveredMesh && hoveredMesh.position?.x === width / 2 ? "white" : "black"}
-            emissiveIntensity={hoveredMesh && hoveredMesh.position?.x === width / 2 ? 0.3 : 0}
-          />
-        </mesh>
-      </SelectableObject>
-
-      {/* Wall 3 */}
-      <SelectableObject viewMode={viewMode} onHoverChange={onHoverChange} hoveredMesh={hoveredMesh}>
-        <mesh position={[0, height / 2, -length / 2]} rotation={[0, Math.PI / 2, 0]} castShadow>
-          <boxGeometry args={[0.1, height, width]} />
-          <meshStandardMaterial 
-            color="#F8F8FF"
-            emissive={hoveredMesh && hoveredMesh.position?.z === -length / 2 ? "white" : "black"}
-            emissiveIntensity={hoveredMesh && hoveredMesh.position?.z === -length / 2 ? 0.3 : 0}
-          />
-        </mesh>
-      </SelectableObject>
-
-      {/* Wall 4 */}
-      <SelectableObject viewMode={viewMode} onHoverChange={onHoverChange} hoveredMesh={hoveredMesh}>
-        <mesh position={[0, height / 2, length / 2]} rotation={[0, Math.PI / 2, 0]} castShadow>
-          <boxGeometry args={[0.1, height, width]} />
-          <meshStandardMaterial 
-            color="#F8F8FF"
-            emissive={hoveredMesh && hoveredMesh.position?.z === length / 2 ? "white" : "black"}
-            emissiveIntensity={hoveredMesh && hoveredMesh.position?.z === length / 2 ? 0.3 : 0}
-          />
-        </mesh>
-      </SelectableObject>
-    </>
+    <group >
+      {objects.map((objectData) => (
+        <ObjectRenderer
+          key={objectData.id}
+          objectData={objectData}
+        />
+      ))}
+    </group>
   );
 };
 

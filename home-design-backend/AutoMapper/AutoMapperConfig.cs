@@ -12,6 +12,7 @@ namespace home_design_backend.AutoMapper
             CreateMap<ProjectObject, ProjectObjectDto>();
             CreateMap<ProjectDTO, Project>();
             CreateMap<ProjectObjectDto, ProjectObject>();
+            CreateMap<UpdateProjectObjectDto, ProjectObject>();
         }
     }
 }

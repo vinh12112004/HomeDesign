@@ -39,7 +39,10 @@ const ObjectRenderer = ({ objectData }) => {
   }, [metadataJson]);
 
   // Load texture nếu có
-  const texture = metadata.texture ? useLoader(TextureLoader, metadata.texture) : null;
+  const texture = useMemo(() => {
+    if (!metadata.texture) return null;
+    return new TextureLoader().load(metadata.texture);
+  }, [metadata.texture]);
 
   // Setup texture properties cho floor
   const configuredTexture = useMemo(() => {
@@ -51,6 +54,13 @@ const ObjectRenderer = ({ objectData }) => {
       tex.wrapT = THREE.RepeatWrapping;
       const repeatX = metadata.width / 2;
       const repeatY = metadata.length / 2;
+      tex.repeat.set(repeatX, repeatY);
+    }
+    if (type === 'Wall') {
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      const repeatX = metadata.sizeZ; // chiều ngang tường (5m)
+      const repeatY = metadata.sizeY; // chiều cao tường (5m)
       tex.repeat.set(repeatX, repeatY);
     }
     return tex;

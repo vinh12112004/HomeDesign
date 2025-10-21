@@ -1,11 +1,13 @@
 ﻿using home_design_backend.AutoMapper;
 using home_design_backend.Data;
 using home_design_backend.Repositories;
+using home_design_backend.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<IBlobStorageService, MinioStorageService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

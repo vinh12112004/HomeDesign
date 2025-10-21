@@ -14,7 +14,8 @@ import {
 } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import { closeObjectEditor } from '../../store/slices/uiSlice';
-import { updateObject } from '../../store/slices/objectSlice';
+import { updateObject, fetchObjects } from '../../store/slices/objectSlice';
+import TexturePicker from './TexturePicker';
 
 const { Option } = Select;
 
@@ -91,7 +92,7 @@ const ObjectEditor = () => {
         objectId: selectedObject.id,
         objectData: updateData
       })).unwrap();
-
+      await dispatch(fetchObjects(currentProject.id));
       console.log('Object updated successfully');
       handleClose();
     } catch (error) {
@@ -288,7 +289,7 @@ const ObjectEditor = () => {
         </Form.Item>
         
         <Form.Item name="texture" label="Texture">
-          <Input placeholder="/textures/floor.png" />
+          <TexturePicker />
         </Form.Item>
 
         <Divider orientation="left">Technical Details</Divider>

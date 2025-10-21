@@ -15,3 +15,7 @@ export const useObjects = () => {
 export const useUI = () => {
   return useAppSelector((state) => state.ui);
 };
+
+export const useTextures = () => {
+  return useAppSelector((state) => state.texture);
+}

@@ -2,13 +2,16 @@ import { configureStore } from '@reduxjs/toolkit';
 import projectSlice from './slices/projectSlice';
 import objectSlice from './slices/objectSlice';
 import uiSlice from './slices/uiSlice';
+import textureSlice from './slices/textureSlice';
 import { useSelector, useDispatch } from 'react-redux';
+
 
 export const store = configureStore({
   reducer: {
     projects: projectSlice,
     objects: objectSlice,
     ui: uiSlice,
+    texture: textureSlice,
   },
   devTools: process.env.NODE_ENV !== 'production',
   middleware: (getDefaultMiddleware) =>

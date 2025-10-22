@@ -2,18 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Button, Input, Upload, Image, Spin, Empty, Space, Switch } from 'antd';
 import { PlusOutlined, UploadOutlined, CheckOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTextures, uploadTexture } from '../../store/slices/textureSlice';
+import { fetchAssets, uploadAsset } from '../../store/slices/assetSlice';
 
 const TexturePicker = ({ value, onChange }) => {
   const dispatch = useDispatch();
-  const { items, loading } = useSelector(s => s.texture);
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('');
   const [selectedUrl, setSelectedUrl] = useState(value || '');
   const [enabled, setEnabled] = useState(!!value);
 
+  const { items, loading } = useSelector(s => ({
+      items: s.assets.items.texture,
+      loading: s.assets.loading.texture
+    }));  
   useEffect(() => {
-    if (open && items.length === 0) dispatch(fetchTextures());
+    if (open && items.length === 0) dispatch(fetchAssets({type : 'texture'}));
   }, [open, items.length, dispatch]);
 
   useEffect(() => {
@@ -32,12 +35,10 @@ const TexturePicker = ({ value, onChange }) => {
 
   const customUpload = async ({ file, onSuccess, onError }) => {
     try {
-      const url = await dispatch(uploadTexture(file)).unwrap();
+      const { url } = await dispatch(uploadAsset({ type: 'texture', file })).unwrap();
       setSelectedUrl(url);
       onSuccess?.(url);
-    } catch (e) {
-      onError?.(e);
-    }
+    } catch (e) { onError?.(e); }
   };
 
   const nameFromUrl = (url) => {

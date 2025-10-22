@@ -31,5 +31,11 @@ namespace home_design_backend.Controllers
             var po = await _projectObjectsRepository.UpdateAsync(id,updateDto);
             return Ok(po);
         }
+        [HttpPost("{projectId}")]
+        public async Task<IActionResult> Create(Guid projectId, [FromBody] ProjectObjectDto dto)
+        {
+            var result = await _projectObjectsRepository.CreateAsync(projectId, dto);
+            return Ok(result);
+        }
     }
 }

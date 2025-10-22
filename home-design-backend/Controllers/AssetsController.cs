@@ -16,12 +16,24 @@ namespace home_design_backend.Controllers
         }
 
         [HttpPost("upload/texture")]
-        public async Task<IActionResult> Upload( IFormFile file)
+        public async Task<IActionResult> UploadTexture( IFormFile file)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("File is empty");
 
             var path = await _blobService.UploadFileAsync(file, "textures");
+            var url = await _blobService.GetFileUrlAsync(path);
+
+            return Ok(new { path, url });
+        }
+
+        [HttpPost("upload/furniture")]
+        public async Task<IActionResult> UploadFurniture(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty");
+
+            var path = await _blobService.UploadFileAsync(file, "furnitures");
             var url = await _blobService.GetFileUrlAsync(path);
 
             return Ok(new { path, url });
@@ -37,6 +49,12 @@ namespace home_design_backend.Controllers
         public async Task<IActionResult> ListTextures()
         {
             var list = await _blobService.ListFilesAsync("textures");
+            return Ok(list);
+        }
+        [HttpGet("furnitures")]
+        public async Task<IActionResult> ListFurnitures()
+        {
+            var list = await _blobService.ListFilesAsync("furnitures");
             return Ok(list);
         }
     }

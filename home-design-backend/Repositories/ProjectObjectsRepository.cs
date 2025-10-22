@@ -21,7 +21,7 @@ namespace home_design_backend.Repositories
             var lpodto = _mapper.Map<List<ProjectObjectDto>>(lpo);
             return lpodto;
         }
-        public async Task<ProjectObject?> UpdateAsync(Guid id, UpdateProjectObjectDto updateDto)
+        public async Task<ProjectObjectDto?> UpdateAsync(Guid id, UpdateProjectObjectDto updateDto)
         {
             var existingObject = await _dbContext.ProjectObjects
                 .FirstOrDefaultAsync(po => po.Id == id);
@@ -31,9 +31,19 @@ namespace home_design_backend.Repositories
 
             _mapper.Map(updateDto, existingObject);
             _dbContext.Update(existingObject);
-
+            var updateResDto = _mapper.Map<ProjectObjectDto>(existingObject);
             await _dbContext.SaveChangesAsync();
-            return existingObject;
+            return updateResDto;
+        }
+        public async Task<bool> CreateAsync(Guid projectId, ProjectObjectDto dto)
+        {
+            
+            ProjectObject projectObject = _mapper.Map<ProjectObject>(dto);
+            projectObject.ProjectId = projectId;
+            projectId = Guid.NewGuid();
+            await _dbContext.AddAsync(projectObject);
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
     }
 }

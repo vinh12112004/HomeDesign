@@ -1,7 +1,43 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { Button } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import FurniturePickerModal from './FurniturePickerModal';
+import { createObject } from '../../store/slices/objectSlice';
+import { setSelectedMesh } from '../../store/slices/uiSlice';
 
 const SideMenu = () => {
+  const dispatch = useDispatch();
+  const { currentProject } = useSelector(s => s.projects);
+  const [openPicker, setOpenPicker] = useState(false);
+
+  const handleSelectFurniture = async (modelUrl) => {
+    if (!currentProject || !modelUrl) return;
+
+    const objectData = {
+      type: 'Furniture',
+      assetKey: 'model/glb',
+      positionJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
+      rotationJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
+      scaleJson: JSON.stringify({ x: 1, y: 1, z: 1 }),
+      metadataJson: JSON.stringify({
+        geometry: 'model',
+        modelUrl,
+      })
+    };
+
+    try {
+      const created = await dispatch(createObject({
+        projectId: currentProject.id,
+        objectData
+      })).unwrap();
+
+      if (created?.id) {
+        dispatch(setSelectedMesh(created.id));
+      }
+    } catch (e) {
+      console.error('Create furniture failed:', e?.message || e);
+    }
+  };
   return (
     <div
       onClick={(e) => e.stopPropagation()}
@@ -9,25 +45,28 @@ const SideMenu = () => {
         display: 'flex',
         alignItems: 'center',
         gap: 8,
-        height: 56,             // chiều cao thanh menu (tuỳ ý)
+        height: 56,       
         padding: '0 16px',
-        background: '#ffffff',  // hoặc trong suốt, tuỳ design
+        background: '#ffffff',  
         borderBottom: '1px solid #eee',
         boxShadow: '0 1px 0 rgba(0,0,0,0.04)',
         zIndex: 50,
       }}
     >
-      {/* Ví dụ các nút chức năng - sau này bạn có thể thêm nhiều hơn */}
-      <Button type="default">Add</Button>
+
+      <Button type="default" onClick={() => setOpenPicker(true)}>Add</Button>
       <Button type="default">Move</Button>
       <Button type="default">Rotate</Button>
       <Button type="default">Measure</Button>
 
-      {/* Spacer - đẩy phần còn lại sang phải */}
-      <div style={{ flex: 1 }} />
 
-      {/* Các nút ở phía phải */}
-      {/* <Button type="primary">Save</Button> */}
+      <div style={{ flex: 1 }} />
+      <FurniturePickerModal
+        open={openPicker}
+        onClose={() => setOpenPicker(false)}
+        onSelect={handleSelectFurniture}
+      />
+
     </div>
   );
 };

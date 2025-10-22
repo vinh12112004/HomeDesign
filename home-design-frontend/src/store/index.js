@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import projectSlice from './slices/projectSlice';
 import objectSlice from './slices/objectSlice';
 import uiSlice from './slices/uiSlice';
-import textureSlice from './slices/textureSlice';
+import assetSlice from './slices/assetSlice';
 import { useSelector, useDispatch } from 'react-redux';
 
 
@@ -11,7 +11,7 @@ export const store = configureStore({
     projects: projectSlice,
     objects: objectSlice,
     ui: uiSlice,
-    texture: textureSlice,
+    assets: assetSlice,
   },
   devTools: process.env.NODE_ENV !== 'production',
   middleware: (getDefaultMiddleware) =>

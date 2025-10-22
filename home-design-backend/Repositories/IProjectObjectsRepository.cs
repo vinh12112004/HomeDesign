@@ -6,6 +6,7 @@ namespace home_design_backend.Repositories
     public interface IProjectObjectsRepository
     {
         Task<List<ProjectObjectDto>> GetAsync(Guid id);
-        Task<ProjectObject?> UpdateAsync(Guid id, UpdateProjectObjectDto updateDto);
+        Task<ProjectObjectDto?> UpdateAsync(Guid id, UpdateProjectObjectDto updateDto);
+        Task<bool> CreateAsync(Guid projectId, ProjectObjectDto dto);
     }
 }

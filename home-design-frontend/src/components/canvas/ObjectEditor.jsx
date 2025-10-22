@@ -64,7 +64,24 @@ const ObjectEditor = () => {
       const values = await form.validateFields();
       
       if (!selectedObject || !currentProject) return;
-      
+      const oldMetadata = JSON.parse(selectedObject.metadataJson || '{}');
+
+      const mergedMetadata = {
+        ...oldMetadata, // giữ lại modelUrl, geometry, ... 
+        name: values.name,
+        geometry: values.geometry,
+        width: values.width,
+        length: values.length,
+        height: values.height,
+        sizeX: values.sizeX,
+        sizeY: values.sizeY,
+        sizeZ: values.sizeZ,
+        texture: values.texture,
+        color:
+          typeof values.color === 'string'
+            ? values.color
+            : values.color?.toHexString?.() || '#FFFFFF'
+      };
       // Chuẩn bị dữ liệu update
       const updateData = {
         type: values.type,
@@ -72,20 +89,7 @@ const ObjectEditor = () => {
         positionJson: JSON.stringify(values.position),
         rotationJson: JSON.stringify(values.rotation),
         scaleJson: JSON.stringify(values.scale),
-        metadataJson: JSON.stringify({
-          name: values.name,
-          geometry: values.geometry,
-          width: values.width,
-          length: values.length,
-          height: values.height,
-          sizeX: values.sizeX,
-          sizeY: values.sizeY,
-          sizeZ: values.sizeZ,
-          texture: values.texture,
-          color: typeof values.color === "string"
-            ? values.color
-            : values.color?.toHexString?.() || "#FFFFFF"
-        })
+        metadataJson: JSON.stringify(mergedMetadata)
       };
 
       await dispatch(updateObject({
@@ -230,7 +234,7 @@ const ObjectEditor = () => {
                 placeholder="X" 
                 style={{ width: '33%' }} 
                 step={0.1} 
-                min={0.1}
+                min={0}
                 precision={2}
               />
             </Form.Item>
@@ -239,7 +243,7 @@ const ObjectEditor = () => {
                 placeholder="Y" 
                 style={{ width: '33%' }} 
                 step={0.1} 
-                min={0.1}
+                min={0}
                 precision={2}
               />
             </Form.Item>
@@ -248,7 +252,7 @@ const ObjectEditor = () => {
                 placeholder="Z" 
                 style={{ width: '34%' }} 
                 step={0.1} 
-                min={0.1}
+                min={0}
                 precision={2}
               />
             </Form.Item>

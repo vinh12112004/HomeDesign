@@ -10,25 +10,33 @@ const SideMenu = () => {
   const { currentProject } = useSelector(s => s.projects);
   const [openPicker, setOpenPicker] = useState(false);
 
-  const handleSelectFurniture = async (modelUrl) => {
-    if (!currentProject || !modelUrl) return;
+  const handleSelectFurniture = async (modelData) => {
+    if (!currentProject || !modelData) return;
+
+    // Parse JSON chứa objPath, mtlPath, texturePath
+    let parsed;
+    try {
+      parsed = JSON.parse(modelData);
+    } catch {
+      parsed = { objPath: modelData };
+    }
 
     const objectData = {
       type: 'Furniture',
-      assetKey: 'model/glb',
+      assetKey: 'model/obj',
       positionJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
       rotationJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
       scaleJson: JSON.stringify({ x: 1, y: 1, z: 1 }),
       metadataJson: JSON.stringify({
         geometry: 'model',
-        modelUrl,
-      })
+        ...parsed, // thêm objPath, mtlPath, texturePath
+      }),
     };
 
     try {
       const created = await dispatch(createObject({
         projectId: currentProject.id,
-        objectData
+        objectData,
       })).unwrap();
 
       if (created?.id) {
@@ -38,6 +46,7 @@ const SideMenu = () => {
       console.error('Create furniture failed:', e?.message || e);
     }
   };
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}

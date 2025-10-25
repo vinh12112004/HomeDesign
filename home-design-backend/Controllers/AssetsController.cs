@@ -1,4 +1,5 @@
-﻿using home_design_backend.Services;
+﻿using home_design_backend.DTOs;
+using home_design_backend.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,7 @@ namespace home_design_backend.Controllers
         }
 
         [HttpPost("upload/texture")]
-        public async Task<IActionResult> UploadTexture( IFormFile file)
+        public async Task<IActionResult> UploadTexture(IFormFile file)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("File is empty");
@@ -28,16 +29,40 @@ namespace home_design_backend.Controllers
         }
 
         [HttpPost("upload/furniture")]
-        public async Task<IActionResult> UploadFurniture(IFormFile file)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadFurniture([FromForm] FurnitureUploadDto dto)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("File is empty");
+            if (string.IsNullOrWhiteSpace(dto.NameModel))
+                return BadRequest("nameModel is required");
 
-            var path = await _blobService.UploadFileAsync(file, "furnitures");
-            var url = await _blobService.GetFileUrlAsync(path);
+            if (dto.ObjFile == null || dto.MtlFile == null || dto.TextureFile == null)
+                return BadRequest("All three files (obj, mtl, texture) are required");
 
-            return Ok(new { path, url });
+            try
+            {
+                var objPath = await _blobService.UploadFileAsync(dto.ObjFile, $"furnitures/{dto.NameModel}");
+                var mtlPath = await _blobService.UploadFileAsync(dto.MtlFile, $"furnitures/{dto.NameModel}");
+                var texturePath = await _blobService.UploadFileAsync(dto.TextureFile, $"furnitures/{dto.NameModel}");
+
+                var objUrl = await _blobService.GetFileUrlAsync(objPath);
+                var mtlUrl = await _blobService.GetFileUrlAsync(mtlPath);
+                var textureUrl = await _blobService.GetFileUrlAsync(texturePath);
+
+                return Ok(new
+                {
+                    objPath = objUrl,
+                    mtlPath = mtlUrl,
+                    texturePath = textureUrl,
+                    nameModel = dto.NameModel
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Upload failed: {ex.Message}");
+            }
         }
+
+
         [HttpGet("url")]
         public async Task<IActionResult> GetPresignedUrl([FromQuery] string folder, [FromQuery] string filename)
         {
@@ -51,11 +76,12 @@ namespace home_design_backend.Controllers
             var list = await _blobService.ListFilesAsync("textures");
             return Ok(list);
         }
+
         [HttpGet("furnitures")]
         public async Task<IActionResult> ListFurnitures()
         {
-            var list = await _blobService.ListFilesAsync("furnitures");
-            return Ok(list);
+            var furnitureModels = await _blobService.ListFurnitureModelsAsync("furnitures");
+            return Ok(furnitureModels);
         }
     }
 }

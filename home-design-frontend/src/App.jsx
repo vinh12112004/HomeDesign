@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AllProjectsPage from './pages/AllProjectsPage';
 import CanvasPage from './pages/CanvasPage'; // 1. Import trang mới
+import ObjScene from './components/ObjScene';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/canvas" element={<CanvasPage />} /> 
       </Routes>
     </Router>
+    // <ObjScene />
   );
 }
 

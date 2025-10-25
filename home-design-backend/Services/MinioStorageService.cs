@@ -116,5 +116,50 @@ namespace home_design_backend.Services
 
             return results;
         }
+        public async Task<List<FurnitureModel>> ListFurnitureModelsAsync(string folder, int expiryInSeconds = 3600)
+        {
+            var furnitureDict = new Dictionary<string, FurnitureModel>();
+            var prefix = string.IsNullOrWhiteSpace(folder) ? "" : $"{folder.TrimEnd('/')}/";
+
+            var args = new ListObjectsArgs()
+                .WithBucket(_bucket)
+                .WithPrefix(prefix)
+                .WithRecursive(true);
+
+            await foreach (var item in _minio.ListObjectsEnumAsync(args))
+            {
+                if (item.IsDir) continue;
+
+                // Parse path: furnitures/{nameModel}/{filename}
+                var parts = item.Key.Split('/');
+                if (parts.Length < 3) continue;
+
+                var nameModel = parts[1];
+                var fileName = parts[2];
+                var fileExt = Path.GetExtension(fileName).ToLower();
+                var url = await GetFileUrlAsync(item.Key);
+
+                if (!furnitureDict.ContainsKey(nameModel))
+                {
+                    furnitureDict[nameModel] = new FurnitureModel { NameModel = nameModel };
+                }
+
+                var model = furnitureDict[nameModel];
+
+                if (fileExt == ".obj")
+                    model.ObjPath = url;
+                else if (fileExt == ".mtl")
+                    model.MtlPath = url;
+                else if (fileExt == ".jpg" || fileExt == ".jpeg" || fileExt == ".png")
+                    model.TexturePath = url;
+            }
+
+            // Filter out incomplete models
+            return furnitureDict.Values
+                .Where(m => !string.IsNullOrEmpty(m.ObjPath) &&
+                           !string.IsNullOrEmpty(m.MtlPath) &&
+                           !string.IsNullOrEmpty(m.TexturePath))
+                .ToList();
+        }
     }
 }

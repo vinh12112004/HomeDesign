@@ -9,9 +9,15 @@ namespace home_design_backend.AutoMapper
         public AutoMapperConfig()
         {
             CreateMap<Project, ProjectDTO>();
-            CreateMap<ProjectObject, ProjectObjectDto>();
             CreateMap<ProjectDTO, Project>();
+
+            CreateMap<ProjectObject, ProjectObjectDto>();
             CreateMap<ProjectObjectDto, ProjectObject>();
+
+            CreateMap<CreateProjectDTO, Project>();
+            CreateMap<Project, CreateProjectDTO>();
+
+
             CreateMap<UpdateProjectObjectDto, ProjectObject>();
         }
     }

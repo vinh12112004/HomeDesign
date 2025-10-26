@@ -5,7 +5,7 @@ namespace home_design_backend.Repositories
 {
     public interface IProjectRepository
     {
-        Task<bool> CreateAsync(ProjectDTO roomDTO);
+        Task<ProjectDTO> CreateAsync(CreateProjectDTO roomDTO);
         Task<Project> GetAsync(Guid id);
         Task<List<Project>> GetAllAsync();
         Task<bool> UpdateAsync(Guid id, ProjectDTO room);

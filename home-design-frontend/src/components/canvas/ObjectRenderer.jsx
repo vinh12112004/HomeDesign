@@ -1,12 +1,16 @@
 import React, { useMemo, useEffect } from 'react';
-import { useGLTF } from '@react-three/drei';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
 import SelectableObject from './SelectableObject';
 import { useSelector } from 'react-redux';
+import { useLoader } from '@react-three/fiber';
 
-function GLBModel({
-  url,
+
+function OBJModel({
+  objPath,
+  mtlPath,
   position,
   rotation,
   scale,
@@ -14,25 +18,35 @@ function GLBModel({
   receiveShadow,
   userData,
 }) {
-  const { scene } = useGLTF(url, true);
+  const materials = useLoader(MTLLoader, mtlPath);
+  const object = useLoader(OBJLoader, objPath, (loader) => {
+    loader.setMaterials(materials);
+  });
 
   useEffect(() => {
-    if (!scene) return;
-    scene.traverse((obj) => {
-      if (obj.isMesh) {
-        obj.castShadow = castShadow;
-        obj.receiveShadow = receiveShadow;
-        obj.userData = {
-          ...obj.userData,
+    if (!object) return;
+
+    // Áp dụng shadow + userData cho tất cả mesh con trong object
+    object.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = castShadow;
+        child.receiveShadow = receiveShadow;
+        child.userData = {
+          ...child.userData,
           ...userData,
         };
       }
     });
-  }, [scene, castShadow, receiveShadow, userData]);
+    // const box = new THREE.Box3().setFromObject(object);
+    // const size = new THREE.Vector3();
+    // box.getSize(size);
+
+    // console.log('Kích thước vật thể:', size);
+  }, [object, castShadow, receiveShadow, userData]);
 
   return (
     <primitive
-      object={scene}
+      object={object}
       position={position}
       rotation={rotation}
       scale={scale}
@@ -135,8 +149,8 @@ const ObjectRenderer = ({ objectData }) => {
       emissiveColor = '#0066ff';
       emissiveIntensity = 0.3;
     } else if (isHovered) {
-      emissiveColor = '#ffff00';
-      emissiveIntensity = 0.2;
+      // emissiveColor = '#ffff00';
+      // emissiveIntensity = 0.2;
     }
 
     return {
@@ -149,8 +163,8 @@ const ObjectRenderer = ({ objectData }) => {
     };
   }, [configuredTexture, hoveredMesh, selectedMesh, id, metadata?.color]);
 
-  // Quan trọng: chỉ load GLB khi có URL
-  const shouldLoadGLB = assetKey === 'model/glb' && !!metadata?.modelUrl;
+  // Quan trọng: chỉ load OBJ khi có URL
+  const shouldLoadOBJ = assetKey === 'model/obj' && !!metadata?.objPath;
 
   const renderGeometry = () => {
     if (assetKey === 'procedural/plane') {
@@ -171,9 +185,10 @@ const ObjectRenderer = ({ objectData }) => {
 
   return (
     <SelectableObject>
-      {shouldLoadGLB ? (
-        <GLBModel
-          url={metadata.modelUrl}
+      {shouldLoadOBJ ? (
+        <OBJModel
+          objPath={metadata.objPath}
+          mtlPath={metadata.mtlPath}
           position={position}
           rotation={rotation}
           scale={scale}

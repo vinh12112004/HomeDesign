@@ -14,7 +14,12 @@ const ClickableModel = ({ mtlPath, objPath, name, onSelect, isSelected }) => {
 
   useEffect(() => {
     if (object) {
-      object.scale.set(0.1, 0.1, 0.1);
+      object.scale.set(1, 1, 1);
+      const box = new THREE.Box3().setFromObject(object);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+
+      console.log('Kích thước vật thể:', size);
     }
   }, [object]);
 
@@ -93,11 +98,12 @@ const ObjScene = () => {
         />
         <ClickableModel
           name="table"
-          mtlPath="/models/couchTable.mtl"
-          objPath="/models/couchTable.obj"
+          mtlPath="/models/samsung_tv.mtl"
+          objPath="/models/samsung_tv.obj"
           onSelect={setSelected}
           isSelected={selected === 'table'}
         />
+
       </Suspense>
     </Canvas>
   );

@@ -16,14 +16,14 @@ namespace home_design_backend.Repositories
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        public async Task<bool> CreateAsync(ProjectDTO projectDTO)
+        public async Task<ProjectDTO> CreateAsync(CreateProjectDTO projectDTO)
         {
             Project project = _mapper.Map<Project>(projectDTO);
             project.Objects ??= new List<ProjectObject>();
             AddDefaultObjectsInline(project);
             await _dbContext.AddAsync(project);
             await _dbContext.SaveChangesAsync();
-            return true;
+            return _mapper.Map<ProjectDTO>(project);
         }
         public async Task<bool> DeleteAsync(Guid id)
         {
@@ -143,7 +143,7 @@ namespace home_design_backend.Repositories
                     geometry = "box",
                     sizeX = wallThickness,
                     sizeY = height,
-                    sizeZ = length,
+                    sizeZ = width,
                     color = "#F8F8FF"
                 })
             });
@@ -163,7 +163,7 @@ namespace home_design_backend.Repositories
                     geometry = "box",
                     sizeX = wallThickness,
                     sizeY = height,
-                    sizeZ = length,
+                    sizeZ = width,
                     color = "#F8F8FF"
                 })
             });

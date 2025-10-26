@@ -11,6 +11,7 @@ function App() {
         <Route path="/" element={<AllProjectsPage />} />
         {/* 2. Thêm route cho trang canvas */}
         <Route path="/canvas" element={<CanvasPage />} /> 
+        <Route path="/test" element={<ObjScene />} />
       </Routes>
     </Router>
     // <ObjScene />

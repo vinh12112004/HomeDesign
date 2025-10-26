@@ -43,7 +43,7 @@ const RoomScene = ({ height, controlsRef }) => {
           ref={canvasRef}
           camera={{ position: [0, 1.7, 0], fov: 75 }}
           shadows
-          style={{ cursor: viewMode === 'free' ? 'pointer' : 'grab' }}
+          style={{ cursor: viewMode === 'free' ? 'pointer' : 'grab',  background: '#eeeeee' } }
           raycaster={{ 
             near: 0.1, 
             far: 100,
@@ -65,7 +65,8 @@ const RoomScene = ({ height, controlsRef }) => {
             shadow-camera-top={10}
             shadow-camera-bottom={-10}
           />
-
+          <axesHelper args={[50]} />
+          <gridHelper args={[100, 100]} />
           <RoomStructure />
 
           {viewMode === 'free' ? (

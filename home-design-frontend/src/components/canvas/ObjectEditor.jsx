@@ -233,27 +233,27 @@ const ObjectEditor = () => {
               <InputNumber 
                 placeholder="X" 
                 style={{ width: '33%' }} 
-                step={0.1} 
+                step={0.001} 
                 min={0}
-                precision={2}
+                precision={3}
               />
             </Form.Item>
             <Form.Item name={['scale', 'y']} noStyle>
               <InputNumber 
                 placeholder="Y" 
                 style={{ width: '33%' }} 
-                step={0.1} 
+                step={0.001} 
                 min={0}
-                precision={2}
+                precision={3}
               />
             </Form.Item>
             <Form.Item name={['scale', 'z']} noStyle>
               <InputNumber 
                 placeholder="Z" 
                 style={{ width: '34%' }} 
-                step={0.1} 
+                step={0.001} 
                 min={0}
-                precision={2}
+                precision={3}
               />
             </Form.Item>
           </Space.Compact>

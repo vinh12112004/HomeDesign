@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import { Button } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import FurniturePickerModal from './FurniturePickerModal';
-import { createObject } from '../../store/slices/objectSlice';
+import { createObject, fetchObjects } from '../../store/slices/objectSlice';
 import { setSelectedMesh } from '../../store/slices/uiSlice';
 
 const SideMenu = () => {
@@ -26,7 +26,7 @@ const SideMenu = () => {
       assetKey: 'model/obj',
       positionJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
       rotationJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
-      scaleJson: JSON.stringify({ x: 1, y: 1, z: 1 }),
+      scaleJson: JSON.stringify({ x: 0.01, y: 0.01, z: 0.01 }),
       metadataJson: JSON.stringify({
         geometry: 'model',
         ...parsed, // thêm objPath, mtlPath, texturePath
@@ -44,6 +44,8 @@ const SideMenu = () => {
       }
     } catch (e) {
       console.error('Create furniture failed:', e?.message || e);
+    } finally {
+      dispatch(fetchObjects(currentProject.id));
     }
   };
 

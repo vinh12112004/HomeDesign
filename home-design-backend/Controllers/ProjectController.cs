@@ -22,10 +22,10 @@ namespace HomeDesign.Backend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateRoom([FromBody] ProjectDTO room)
+        public async Task<IActionResult> CreateRoom([FromBody] CreateProjectDTO room)
         {
-            await _roomRepository.CreateAsync(room);
-            return Ok("Create Success");
+            var result = await _roomRepository.CreateAsync(room);
+            return Ok(result);
         }
 
         [HttpGet]

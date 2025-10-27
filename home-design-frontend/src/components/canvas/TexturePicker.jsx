@@ -11,10 +11,9 @@ const TexturePicker = ({ value, onChange }) => {
   const [selectedUrl, setSelectedUrl] = useState(value || '');
   const [enabled, setEnabled] = useState(!!value);
 
-  const { items, loading } = useSelector(s => ({
-      items: s.assets.items.texture,
-      loading: s.assets.loading.texture
-    }));  
+  const items = useSelector(s => s.assets.items.texture);
+  const loading = useSelector(s => s.assets.loading.texture);
+
   useEffect(() => {
     if (open && items.length === 0) dispatch(fetchAssets({type : 'texture'}));
   }, [open, items.length, dispatch]);

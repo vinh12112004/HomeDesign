@@ -22,7 +22,9 @@ const uiSlice = createSlice({
     },
     setSelectedMesh: (state, action) => {
       state.selectedMesh = action.payload;
-      state.showObjectEditor = action.payload !== null;
+    },
+    openObjectEditor: (state) => {
+      state.showObjectEditor = true;
     },
     closeObjectEditor: (state) => {
       state.selectedMesh = null;
@@ -31,5 +33,5 @@ const uiSlice = createSlice({
   },
 });
 
-export const { setViewMode, toggleViewMode, setHoveredMesh, setSelectedMesh, closeObjectEditor } = uiSlice.actions;
+export const { setViewMode, toggleViewMode, setHoveredMesh, setSelectedMesh, openObjectEditor, closeObjectEditor } = uiSlice.actions;
 export default uiSlice.reducer;

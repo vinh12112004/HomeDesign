@@ -103,14 +103,9 @@ const ObjectRenderer = ({ objectData }) => {
   }, [metadataJson]);
 
   // Texture (nếu có)
-  const texture = useMemo(() => {
-    if (!metadata?.texture) return null;
-    try {
-      return new TextureLoader().load(metadata.texture);
-    } catch {
-      return null;
-    }
-  }, [metadata?.texture]);
+  const texture = metadata?.texture
+  ? useLoader(TextureLoader, metadata.texture)
+  : null;
 
   // Lặp texture cho Floor/Wall
   const configuredTexture = useMemo(() => {

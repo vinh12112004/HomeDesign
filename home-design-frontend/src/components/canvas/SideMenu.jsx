@@ -3,16 +3,23 @@ import { Button } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import FurniturePickerModal from './FurniturePickerModal';
 import { createObject, fetchObjects } from '../../store/slices/objectSlice';
-import { setSelectedMesh } from '../../store/slices/uiSlice';
+import { setSelectedMesh, openObjectEditor  } from '../../store/slices/uiSlice';
 
 const SideMenu = () => {
   const dispatch = useDispatch();
   const { currentProject } = useSelector(s => s.projects);
+  const { selectedMesh } = useSelector(s => s.ui);
+
   const [openPicker, setOpenPicker] = useState(false);
 
+  const handlePropertiesClick = () => {
+    if (selectedMesh) {
+      dispatch(openObjectEditor());
+    }
+  };
   const handleSelectFurniture = async (modelData) => {
     if (!currentProject || !modelData) return;
-
+    
     // Parse JSON chứa objPath, mtlPath, texturePath
     let parsed;
     try {
@@ -68,7 +75,13 @@ const SideMenu = () => {
       <Button type="default" onClick={() => setOpenPicker(true)}>Add</Button>
       <Button type="default">Move</Button>
       <Button type="default">Rotate</Button>
-      <Button type="default">Measure</Button>
+      <Button 
+        type="primary" 
+        onClick={handlePropertiesClick}
+        disabled={!selectedMesh}
+      >
+        Properties
+      </Button>
 
 
       <div style={{ flex: 1 }} />

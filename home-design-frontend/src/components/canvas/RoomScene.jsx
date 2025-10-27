@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { useSelector } from 'react-redux';
@@ -67,7 +67,9 @@ const RoomScene = ({ height, controlsRef }) => {
           />
           <axesHelper args={[50]} />
           <gridHelper args={[100, 100]} />
-          <RoomStructure />
+          <Suspense>
+            <RoomStructure />
+          </Suspense>
 
           {viewMode === 'free' ? (
             <PlayerMovement controlsRef={controlsRef} />

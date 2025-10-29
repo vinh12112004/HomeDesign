@@ -156,10 +156,8 @@ namespace home_design_backend.Services
 
             // Filter out incomplete models
             return furnitureDict.Values
-                .Where(m => !string.IsNullOrEmpty(m.ObjPath) &&
-                           !string.IsNullOrEmpty(m.MtlPath) &&
-                           !string.IsNullOrEmpty(m.TexturePath))
-                .ToList();
+                .Where(m => !string.IsNullOrEmpty(m.ObjPath))
+                           .ToList();
         }
     }
 }

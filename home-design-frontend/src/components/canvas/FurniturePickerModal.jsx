@@ -59,16 +59,16 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
       return;
     }
     
-    if (!obj || !mtl || !texture) {
-      message.warning('Vui lòng chọn đủ 3 file: .obj, .mtl và .jpg/.png');
+    if (!obj ) {
+      message.warning('Vui lòng chọn file .obj ');
       return;
     }
 
     try {
       const result = await dispatch(uploadFurnitureModel({
         objFile: obj,
-        mtlFile: mtl,
-        textureFile: texture,
+        mtlFile: mtl || null, // null nếu không có mtl
+        textureFile: texture || null, // null nếu không có texture
         nameModel: nameModel.trim(),
       })).unwrap();
 
@@ -126,13 +126,17 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
             }}
             multiple
           >
-            <Button icon={<UploadOutlined />}>Chọn .obj / .mtl / .jpg</Button>
+            <Button icon={<UploadOutlined />}>Chọn .obj / .mtl / .jpg (optional)</Button>
           </Upload>
 
           <Button type="primary" onClick={handleUploadAll}>
             Upload tất cả
           </Button>
         </Space>
+
+        <div style={{ fontSize: 12, color: '#666' }}>
+          Bắt buộc: .obj 
+        </div>
       </Space>
 
       {loading ? (
@@ -177,13 +181,22 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
                   overflow: 'hidden',
                 }}
               >
-                <Image
-                  src={model.texturePath}
-                  preview={false}
-                  alt={model.nameModel}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  fallback="/icons/furniture.png"
-                />
+                {model.texturePath ? (
+                  <Image
+                    src={model.texturePath}
+                    preview={false}
+                    alt={model.nameModel}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    fallback="/icons/furniture.png"
+                  />
+                ) : (
+                  <Image
+                    src="/icons/furniture.png"
+                    preview={false}
+                    alt="furniture"
+                    style={{ width: 48, height: 48, opacity: 0.7 }}
+                  />
+                )}
               </div>
               <div style={{
                 marginTop: 4,

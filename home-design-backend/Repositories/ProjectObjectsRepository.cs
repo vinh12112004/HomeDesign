@@ -45,5 +45,15 @@ namespace home_design_backend.Repositories
             await _dbContext.SaveChangesAsync();
             return true;
         }
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var existingObject = await _dbContext.ProjectObjects
+                .FirstOrDefaultAsync(po => po.Id == id);
+            if (existingObject == null)
+                return false;
+            _dbContext.ProjectObjects.Remove(existingObject);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
     }
 }

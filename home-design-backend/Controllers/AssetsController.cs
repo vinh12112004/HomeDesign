@@ -35,24 +35,34 @@ namespace home_design_backend.Controllers
             if (string.IsNullOrWhiteSpace(dto.NameModel))
                 return BadRequest("nameModel is required");
 
-            if (dto.ObjFile == null || dto.MtlFile == null || dto.TextureFile == null)
-                return BadRequest("All three files (obj, mtl, texture) are required");
+            if (dto.ObjFile == null)
+                return BadRequest("obj are required");
 
             try
             {
                 var objPath = await _blobService.UploadFileAsync(dto.ObjFile, $"furnitures/{dto.NameModel}");
-                var mtlPath = await _blobService.UploadFileAsync(dto.MtlFile, $"furnitures/{dto.NameModel}");
-                var texturePath = await _blobService.UploadFileAsync(dto.TextureFile, $"furnitures/{dto.NameModel}");
-
                 var objUrl = await _blobService.GetFileUrlAsync(objPath);
-                var mtlUrl = await _blobService.GetFileUrlAsync(mtlPath);
-                var textureUrl = await _blobService.GetFileUrlAsync(texturePath);
+
+                string? textureUrl = null;
+                string? mtlUrl = null;
+
+                if (dto.MtlFile != null)
+                {
+                    var mtlPath = await _blobService.UploadFileAsync(dto.MtlFile, $"furnitures/{dto.NameModel}");
+                    mtlUrl = await _blobService.GetFileUrlAsync(mtlPath);
+                }
+
+                if (dto.TextureFile != null)
+                {
+                    var texturePath = await _blobService.UploadFileAsync(dto.TextureFile, $"furnitures/{dto.NameModel}");
+                    textureUrl = await _blobService.GetFileUrlAsync(texturePath);
+                }  
 
                 return Ok(new
                 {
                     objPath = objUrl,
-                    mtlPath = mtlUrl,
-                    texturePath = textureUrl,
+                    mtlPath = mtlUrl != null ? mtlUrl : null,
+                    texturePath = textureUrl != null ? textureUrl : null,
                     nameModel = dto.NameModel
                 });
             }

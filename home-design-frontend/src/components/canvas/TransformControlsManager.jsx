@@ -108,11 +108,7 @@ export default function TransformControlsManager() {
         y: newPosition.y,
         z: newPosition.z
       }),
-      rotationJson: JSON.stringify({
-        x: newRotation.x,
-        y: newRotation.y,
-        z: newRotation.z
-      }),
+      rotationJson: currentObject.rotationJson,
       scaleJson: currentObject.scaleJson,
       metadataJson: currentObject.metadataJson
     };

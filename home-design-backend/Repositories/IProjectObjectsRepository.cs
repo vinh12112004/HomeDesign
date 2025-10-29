@@ -8,5 +8,6 @@ namespace home_design_backend.Repositories
         Task<List<ProjectObjectDto>> GetAsync(Guid id);
         Task<ProjectObjectDto?> UpdateAsync(Guid id, UpdateProjectObjectDto updateDto);
         Task<bool> CreateAsync(Guid projectId, ProjectObjectDto dto);
+        Task<bool> DeleteAsync(Guid id);
     }
 }

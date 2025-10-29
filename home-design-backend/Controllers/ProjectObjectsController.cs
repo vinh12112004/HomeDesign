@@ -37,5 +37,11 @@ namespace home_design_backend.Controllers
             var result = await _projectObjectsRepository.CreateAsync(projectId, dto);
             return Ok(result);
         }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var result = await _projectObjectsRepository.DeleteAsync(id);
+            return Ok(result);
+        }
     }
 }

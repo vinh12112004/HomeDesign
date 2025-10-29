@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useLoader } from '@react-three/fiber';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import * as THREE from 'three';
 
 export default function OBJModel({ 
   objPath,
@@ -14,10 +15,20 @@ export default function OBJModel({
   userData 
 }) {
   const groupRef = useRef();
-  const materials = useLoader(MTLLoader, mtlPath);
+  const materials = mtlPath ? useLoader(MTLLoader, mtlPath) : null
+
   const object = useLoader(OBJLoader, objPath, (loader) => {
-    loader.setMaterials(materials);
-  });
+    if (materials) loader.setMaterials(materials)
+  })
+
+  // Nếu không có MTL, gán màu mặc định
+  if (!materials) {
+    object.traverse((child) => {
+      if (child.isMesh) {
+        child.material = new THREE.MeshStandardMaterial({ color: 0xcccccc })
+      }
+    })
+  }
 
   useEffect(() => {
     if (!object) return;

@@ -54,7 +54,7 @@ namespace home_design_backend.Services
 
         public async Task<string> UploadFileAsync(IFormFile file, string folder)
         {
-            string bucketName = "homedesign-assets";
+            string bucketName = "homedesign";
             await EnsureBucketExistsAsync(bucketName);
 
             var fileName = $"{folder}/{file.FileName}";

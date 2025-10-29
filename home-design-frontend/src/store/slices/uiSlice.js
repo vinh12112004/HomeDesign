@@ -5,6 +5,7 @@ const initialState = {
   hoveredMesh: null,
   selectedMesh: null,
   showObjectEditor: false,
+  showTranformControls: false,
 };
 
 const uiSlice = createSlice({
@@ -26,12 +27,19 @@ const uiSlice = createSlice({
     openObjectEditor: (state) => {
       state.showObjectEditor = true;
     },
+    openTransformControls: (state) => {
+      state.showTranformControls = true;
+    },
     closeObjectEditor: (state) => {
       state.selectedMesh = null;
       state.showObjectEditor = false;
     },
+    closeTransformControls: (state) => {
+      state.showTranformControls = false;
+      state.selectedMesh = null;
+    }
   },
 });
 
-export const { setViewMode, toggleViewMode, setHoveredMesh, setSelectedMesh, openObjectEditor, closeObjectEditor } = uiSlice.actions;
+export const { setViewMode, toggleViewMode, setHoveredMesh, setSelectedMesh, openObjectEditor, closeObjectEditor, openTransformControls, closeTransformControls } = uiSlice.actions;
 export default uiSlice.reducer;

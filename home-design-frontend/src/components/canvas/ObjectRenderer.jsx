@@ -1,58 +1,10 @@
 import React, { useMemo, useEffect } from 'react';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
 import SelectableObject from './SelectableObject';
 import { useSelector } from 'react-redux';
 import { useLoader } from '@react-three/fiber';
-
-
-function OBJModel({
-  objPath,
-  mtlPath,
-  position,
-  rotation,
-  scale,
-  castShadow,
-  receiveShadow,
-  userData,
-}) {
-  const materials = useLoader(MTLLoader, mtlPath);
-  const object = useLoader(OBJLoader, objPath, (loader) => {
-    loader.setMaterials(materials);
-  });
-
-  useEffect(() => {
-    if (!object) return;
-
-    // Áp dụng shadow + userData cho tất cả mesh con trong object
-    object.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = castShadow;
-        child.receiveShadow = receiveShadow;
-        child.userData = {
-          ...child.userData,
-          ...userData,
-        };
-      }
-    });
-    // const box = new THREE.Box3().setFromObject(object);
-    // const size = new THREE.Vector3();
-    // box.getSize(size);
-
-    // console.log('Kích thước vật thể:', size);
-  }, [object, castShadow, receiveShadow, userData]);
-
-  return (
-    <primitive
-      object={object}
-      position={position}
-      rotation={rotation}
-      scale={scale}
-    />
-  );
-}
+import OBJModel from './OBJModel';
 
 const ObjectRenderer = ({ objectData }) => {
   const {

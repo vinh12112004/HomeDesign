@@ -3,7 +3,7 @@ import { Button } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import FurniturePickerModal from './FurniturePickerModal';
 import { createObject, fetchObjects } from '../../store/slices/objectSlice';
-import { setSelectedMesh, openObjectEditor  } from '../../store/slices/uiSlice';
+import { setSelectedMesh, openObjectEditor, openTransformControls, closeTransformControls } from '../../store/slices/uiSlice';
 
 const SideMenu = () => {
   const dispatch = useDispatch();
@@ -11,6 +11,18 @@ const SideMenu = () => {
   const { selectedMesh } = useSelector(s => s.ui);
 
   const [openPicker, setOpenPicker] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
+
+  const handleMoveClick = () => {
+    if (selectedMesh && isMoving === false) {
+      dispatch(openTransformControls());
+      setIsMoving(true);
+    } else {
+      dispatch(closeTransformControls());
+      setIsMoving(false);
+    }
+
+  };
 
   const handlePropertiesClick = () => {
     if (selectedMesh) {
@@ -73,7 +85,12 @@ const SideMenu = () => {
     >
 
       <Button type="default" onClick={() => setOpenPicker(true)}>Add</Button>
-      <Button type="default">Move</Button>
+      <Button type="default" 
+        onClick={handleMoveClick}
+        // disabled={!selectedMesh}
+      >
+        Move
+      </Button>
       <Button type="default">Rotate</Button>
       <Button 
         type="primary" 

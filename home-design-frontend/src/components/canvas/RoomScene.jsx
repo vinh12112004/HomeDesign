@@ -4,6 +4,7 @@ import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { useSelector } from 'react-redux';
 import PlayerMovement from './PlayerMovement';
 import RoomStructure from './RoomStructure';
+import TransformControlsManager from './TransformControlsManager';
 
 const RoomScene = ({ height, controlsRef }) => {
   const canvasRef = useRef();
@@ -43,7 +44,7 @@ const RoomScene = ({ height, controlsRef }) => {
           ref={canvasRef}
           camera={{ position: [0, 1.7, 0], fov: 75 }}
           shadows
-          style={{ cursor: viewMode === 'free' ? 'pointer' : 'grab',  background: '#eeeeee' } }
+          style={{ cursor: viewMode === 'free' ? 'pointer' : 'grab', background: '#eeeeee' }}
           raycaster={{ 
             near: 0.1, 
             far: 100,
@@ -67,6 +68,7 @@ const RoomScene = ({ height, controlsRef }) => {
           />
           <axesHelper args={[50]} />
           <gridHelper args={[100, 100]} />
+          
           <Suspense>
             <RoomStructure />
           </Suspense>
@@ -74,17 +76,18 @@ const RoomScene = ({ height, controlsRef }) => {
           {viewMode === 'free' ? (
             <PlayerMovement controlsRef={controlsRef} />
           ) : (
-            <OrbitControls 
-              makeDefault 
-              target={[0, height / 2, 0]} 
-              enablePan 
-              enableDamping
-              // Tắt mouse events khi hover để không conflict
-              enableRotate={true}
-              enableZoom={true}
-              // Priority thấp hơn để pointer events của objects được ưu tiên
-              domElement={undefined}
-            />
+            <>
+              <OrbitControls 
+                makeDefault 
+                target={[0, height / 2, 0]} 
+                enablePan 
+                enableDamping
+                enableRotate={true}
+                enableZoom={true}
+              />
+              {/* Thêm TransformControlsManager vào đây */}
+              <TransformControlsManager />
+            </>
           )}
         </Canvas>
       </KeyboardControls>

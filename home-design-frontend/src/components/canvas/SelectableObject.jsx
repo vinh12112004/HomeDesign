@@ -8,12 +8,12 @@ const SelectableObject = ({ children }) => {
   const [isDragging, setIsDragging] = useState(false);
   const { viewMode } = useSelector(state => state.ui);
 
-  const handleHoverChange = (mesh, isHovering) => {
-    if (viewMode === 'fixed') {
-      console.log('Setting hovered mesh:', isHovering ? mesh.userData.objectId : null);
-      dispatch(setHoveredMesh(isHovering ? mesh.userData.objectId : null));
-    }
-  };
+  // const handleHoverChange = (mesh, isHovering) => {
+  //   if (viewMode === 'fixed') {
+  //     // console.log('Setting hovered mesh:', isHovering ? mesh.userData.objectId : null);
+  //     dispatch(setHoveredMesh(isHovering ? mesh.userData.objectId : null));
+  //   }
+  // };
 
   const handlePointerDown = (e) => {
     if (viewMode === 'fixed') {
@@ -31,38 +31,38 @@ const SelectableObject = ({ children }) => {
     setTimeout(() => setIsDragging(false), 100);
   };
 
-  const handlePointerOver = (e) => {
-    e.stopPropagation(); // Ngăn event bubble
-    if (viewMode === 'fixed' && !isDragging) {
-      // Tìm mesh có userData.objectId (tránh hover vào mesh con)
-      let targetMesh = e.object;
-      while (targetMesh && !targetMesh.userData?.objectId) {
-        targetMesh = targetMesh.parent;
-        if (!targetMesh || targetMesh.type !== 'Mesh') break;
-      }
+  // const handlePointerOver = (e) => {
+  //   e.stopPropagation(); // Ngăn event bubble
+  //   if (viewMode === 'fixed' && !isDragging) {
+  //     // Tìm mesh có userData.objectId (tránh hover vào mesh con)
+  //     let targetMesh = e.object;
+  //     while (targetMesh && !targetMesh.userData?.objectId) {
+  //       targetMesh = targetMesh.parent;
+  //       if (!targetMesh || targetMesh.type !== 'Mesh') break;
+  //     }
       
-      if (targetMesh && targetMesh.userData?.objectId) {
-        console.log('Hovering over mesh userData:', targetMesh.userData.objectId);
-        handleHoverChange(targetMesh, true);
-      }
-    }
-  };
+  //     if (targetMesh && targetMesh.userData?.objectId) {
+  //       // console.log('Hovering over mesh userData:', targetMesh.userData.objectId);
+  //       handleHoverChange(targetMesh, true);
+  //     }
+  //   }
+  // };
 
-  const handlePointerOut = (e) => {
-    e.stopPropagation();
-    if (viewMode === 'fixed') {
-      let targetMesh = e.object;
-      while (targetMesh && !targetMesh.userData?.objectId) {
-        targetMesh = targetMesh.parent;
-        if (!targetMesh || targetMesh.type !== 'Mesh') break;
-      }
+  // const handlePointerOut = (e) => {
+  //   e.stopPropagation();
+  //   if (viewMode === 'fixed') {
+  //     let targetMesh = e.object;
+  //     while (targetMesh && !targetMesh.userData?.objectId) {
+  //       targetMesh = targetMesh.parent;
+  //       if (!targetMesh || targetMesh.type !== 'Mesh') break;
+  //     }
       
-      if (targetMesh && targetMesh.userData?.objectId) {
-        console.log('Leaving mesh userData:', targetMesh.userData.objectId);
-        handleHoverChange(targetMesh, false);
-      }
-    }
-  };
+  //     if (targetMesh && targetMesh.userData?.objectId) {
+  //       // console.log('Leaving mesh userData:', targetMesh.userData.objectId);
+  //       handleHoverChange(targetMesh, false);
+  //     }
+  //   }
+  // };
 
   const handleClick = (e) => {
     e.stopPropagation();
@@ -74,7 +74,7 @@ const SelectableObject = ({ children }) => {
       }
       
       if (targetMesh && targetMesh.userData?.objectId) {
-        console.log('Selecting object:', targetMesh.userData.objectId);
+        // console.log('Selecting object:', targetMesh.userData.objectId);
         dispatch(setSelectedMesh(targetMesh.userData.objectId));
       }
     }
@@ -86,8 +86,8 @@ const SelectableObject = ({ children }) => {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
+      // onPointerOver={handlePointerOver}
+      // onPointerOut={handlePointerOut}
       onClick={handleClick}
     >
       {children}

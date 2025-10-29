@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   Drawer, 
@@ -28,35 +28,34 @@ const ObjectEditor = () => {
   const [form] = Form.useForm();
   const [selectedObject, setSelectedObject] = useState(null);
 
-  useEffect(() => {
-    if (selectedMesh && objects.length > 0) {
-      const obj = objects.find(o => o.id === selectedMesh);
-      if (obj) {
-        setSelectedObject(obj);
-        
-        // Parse JSON data để hiển thị trong form
-        const position = JSON.parse(obj.positionJson);
-        const rotation = JSON.parse(obj.rotationJson);
-        const scale = JSON.parse(obj.scaleJson);
-        const metadata = JSON.parse(obj.metadataJson);
-        
-        form.setFieldsValue({
-          name: metadata.name || `${obj.type} ${obj.id.substring(0, 8)}`,
-          type: obj.type,
-          position: position,
-          rotation: rotation,
-          scale: scale,
-          color: metadata.color || '#F8F8FF',
-          ...metadata
-        });
-      }
+  useLayoutEffect(() => {
+  if (selectedMesh && objects.length > 0) {
+    const obj = objects.find(o => o.id === selectedMesh);
+    if (obj) {
+      setSelectedObject(obj);
+
+      const position = JSON.parse(obj.positionJson);
+      const rotation = JSON.parse(obj.rotationJson);
+      const scale = JSON.parse(obj.scaleJson);
+      const metadata = JSON.parse(obj.metadataJson);
+
+      form.setFieldsValue({
+        name: metadata.name || `${obj.type} ${obj.id.substring(0, 8)}`,
+        type: obj.type,
+        position,
+        rotation,
+        scale,
+        color: metadata.color || '#F8F8FF',
+        ...metadata
+      });
     }
-  }, [selectedMesh, objects, form]);
+  }
+}, [selectedMesh, objects]);
+
 
   const handleClose = () => {
     dispatch(closeObjectEditor());
     form.resetFields();
-    setSelectedObject(null);
   };
 
   const handleSave = async () => {

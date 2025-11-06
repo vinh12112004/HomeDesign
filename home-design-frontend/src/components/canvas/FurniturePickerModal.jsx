@@ -9,35 +9,22 @@ import {
     Spin,
     Empty,
     message,
-    Radio,
 } from "antd";
 import { UploadOutlined, CheckOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import {
     fetchAssets,
     uploadFurnitureModel,
-    uploadOpeningModel,
 } from "../../store/slices/assetSlice";
 
 const OpeningPickerModal = ({ open, onClose, onSelect }) => {
     const dispatch = useDispatch();
+    const items = useSelector((s) => s.assets.items.furniture || []);
+    const loading = useSelector((s) => s.assets.loading.furniture);
 
-    // Lấy toàn bộ items & loading theo type động
-    const allItems = useSelector((s) => s.assets.items);
-    const allLoading = useSelector((s) => s.assets.loading);
-    // Selected mesh id từ canvas (nếu có)
-    const selectedMeshId = useSelector((s) => s.ui.selectedMesh);
-    // Danh sách objects hiện tại trong project
-    const { objects } = useSelector((s) => s.objects);
-
-    const [activeType, setActiveType] = useState("furniture"); // "furniture" | "opening"
     const [filter, setFilter] = useState("");
     const [selectedModel, setSelectedModel] = useState(null);
 
-    const items = allItems[activeType] || [];
-    const loading = allLoading[activeType];
-
-    // State cho upload
     const [files, setFiles] = useState({
         obj: null,
         mtl: null,
@@ -48,9 +35,9 @@ const OpeningPickerModal = ({ open, onClose, onSelect }) => {
     // Fetch danh sách khi mở modal
     useEffect(() => {
         if (open && items.length === 0) {
-            dispatch(fetchAssets({ type: activeType }));
+            dispatch(fetchAssets({ type: "furniture" }));
         }
-    }, [open, activeType, items.length, dispatch]);
+    }, [open, items.length, dispatch]);
 
     // Lọc model theo tên
     const filtered = useMemo(
@@ -93,32 +80,21 @@ const OpeningPickerModal = ({ open, onClose, onSelect }) => {
         }
 
         try {
-            if (activeType === "furniture") {
-                await dispatch(
-                    uploadFurnitureModel({
-                        objFile: obj,
-                        mtlFile: mtl || null,
-                        textureFile: texture || null,
-                        nameModel: nameModel.trim(),
-                    })
-                ).unwrap();
-            } else {
-                await dispatch(
-                    uploadOpeningModel({
-                        objFile: obj,
-                        mtlFile: mtl || null,
-                        textureFile: texture || null,
-                        nameModel: nameModel.trim(),
-                    })
-                ).unwrap();
-            }
+            await dispatch(
+                uploadFurnitureModel({
+                    objFile: obj,
+                    mtlFile: mtl || null,
+                    textureFile: texture || null,
+                    nameModel: nameModel.trim(),
+                })
+            ).unwrap();
 
             message.success("Upload thành công!");
 
             setFiles({ obj: null, mtl: null, texture: null });
             setNameModel("");
 
-            dispatch(fetchAssets({ type: activeType }));
+            dispatch(fetchAssets({ type: "furniture" }));
         } catch (e) {
             console.error(e);
             message.error("Upload thất bại, vui lòng thử lại.");
@@ -126,45 +102,12 @@ const OpeningPickerModal = ({ open, onClose, onSelect }) => {
     };
 
     const confirm = () => {
-        console.log("selectedModel:", selectedModel);
-
         if (!selectedModel) {
-            console.log("Showing warning...");
-            alert("Vui lòng chọn một model!"); // Test xem alert có hiện không
             message.warning(
                 "Vui lòng chọn một model trước khi thêm vào scene!",
                 3
             );
             return;
-        }
-
-        // Nếu đang thêm opening (door/window), ensure đã chọn một Wall trước
-        if (activeType === "opening") {
-            if (!selectedMeshId) {
-                alert("Vui lòng chọn một wall trước khi thêm opening!");
-                message.warning(
-                    "Vui lòng chọn một wall trước khi thêm opening!",
-                    3
-                );
-                return;
-            }
-
-            const targetObj = (objects || []).find(
-                (o) => o.id === selectedMeshId
-            );
-            const isWall =
-                targetObj &&
-                (targetObj.type === "Wall" || targetObj.type === "wall");
-            if (!isWall) {
-                alert(
-                    "Mesh được chọn không phải là wall. Vui lòng chọn wall trước khi thêm opening!"
-                );
-                message.warning(
-                    "Mesh được chọn không phải là wall. Vui lòng chọn wall trước khi thêm opening!",
-                    3
-                );
-                return;
-            }
         }
 
         onSelect?.(JSON.stringify(selectedModel));
@@ -173,24 +116,14 @@ const OpeningPickerModal = ({ open, onClose, onSelect }) => {
 
     return (
         <Modal
-            title="Select model"
+            title="Select Furniture Model"
             open={open}
             onOk={confirm}
             onCancel={onClose}
             okText="Add to scene"
             width={820}
         >
-            {/* Bộ chọn loại asset */}
-            <Radio.Group
-                value={activeType}
-                onChange={(e) => setActiveType(e.target.value)}
-                style={{ marginBottom: 16 }}
-            >
-                <Radio.Button value="furniture">Furniture</Radio.Button>
-                <Radio.Button value="opening">Opening</Radio.Button>
-            </Radio.Group>
-
-            {/* Khu vực upload */}
+            {/* Ô lọc + upload */}
             <Space
                 direction="vertical"
                 style={{ width: "100%", marginBottom: 12 }}
@@ -237,11 +170,7 @@ const OpeningPickerModal = ({ open, onClose, onSelect }) => {
             {loading ? (
                 <Spin />
             ) : filtered.length === 0 ? (
-                <Empty
-                    description={`No ${
-                        activeType === "furniture" ? "furniture" : "opening"
-                    } files`}
-                />
+                <Empty description="No furniture files" />
             ) : (
                 <div
                     style={{

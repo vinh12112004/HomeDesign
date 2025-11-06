@@ -53,6 +53,7 @@ const SideMenu = () => {
     const handleDeselectClick = () => {
         dispatch(clearSelectedMesh());
         setIsMoving(false);
+        setIsRotating(false);
     };
 
     const handlePropertiesClick = () => {

@@ -9,5 +9,7 @@ namespace home_design_backend.Repositories
         Task<ProjectObjectDto?> UpdateAsync(Guid id, UpdateProjectObjectDto updateDto);
         Task<bool> CreateAsync(Guid projectId, ProjectObjectDto dto);
         Task<bool> DeleteAsync(Guid id);
+        Task<bool> AddHoleAsync(Guid wallId, CreateHoleDto holeDto);
+
     }
 }

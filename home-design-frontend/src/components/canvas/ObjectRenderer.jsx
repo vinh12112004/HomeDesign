@@ -1,10 +1,12 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useRef } from "react";
 import { TextureLoader } from "three";
 import * as THREE from "three";
 import SelectableObject from "./SelectableObject";
 import { useSelector } from "react-redux";
 import { useLoader } from "@react-three/fiber";
 import OBJModel from "./OBJModel";
+import { useThree } from "@react-three/fiber";
+import { CSG } from "three-csg-ts";
 
 const ObjectRenderer = ({ objectData }) => {
     const {
@@ -17,6 +19,9 @@ const ObjectRenderer = ({ objectData }) => {
         metadataJson,
     } = objectData;
 
+    const meshRef = useRef();
+    const { scene } = useThree();
+
     const { hoveredMesh, selectedMesh } = useSelector((state) => state.ui);
 
     const position = useMemo(() => {
@@ -27,6 +32,7 @@ const ObjectRenderer = ({ objectData }) => {
             return [0, 0, 0];
         }
     }, [positionJson]);
+    position[1];
 
     const rotation = useMemo(() => {
         try {
@@ -75,8 +81,8 @@ const ObjectRenderer = ({ objectData }) => {
         if (type === "Wall") {
             tex.wrapS = THREE.RepeatWrapping;
             tex.wrapT = THREE.RepeatWrapping;
-            const repeatX = metadata.sizeZ ?? 1; // ngang tường
-            const repeatY = metadata.sizeY ?? 1; // cao tường
+            const repeatX = metadata.sizeZ ?? 1;
+            const repeatY = metadata.sizeY ?? 1;
             tex.repeat.set(repeatX, repeatY);
         }
 
@@ -110,30 +116,88 @@ const ObjectRenderer = ({ objectData }) => {
         };
     }, [configuredTexture, hoveredMesh, selectedMesh, id, metadata?.color]);
 
-    // Quan trọng: chỉ load OBJ khi có URL
     const shouldLoadOBJ = assetKey === "model/obj" && !!metadata?.objPath;
 
-    const renderGeometry = () => {
+    // Tạo geometry với CSG nếu có holes
+    const geometry = useMemo(() => {
         if (assetKey === "procedural/plane") {
-            return (
-                <planeGeometry
-                    args={[metadata.width ?? 1, metadata.length ?? 1]}
-                />
+            return new THREE.PlaneGeometry(
+                metadata.width ?? 1,
+                metadata.length ?? 1
             );
         }
+
         if (assetKey === "procedural/box") {
-            return (
-                <boxGeometry
-                    args={[
-                        metadata.sizeX ?? 1,
-                        metadata.sizeY ?? 1,
-                        metadata.sizeZ ?? 1,
-                    ]}
-                />
-            );
+            const sizeX = metadata.sizeX ?? 1;
+            const sizeY = metadata.sizeY ?? 1;
+            const sizeZ = metadata.sizeZ ?? 1;
+
+            // Tạo box chính
+            const mainGeometry = new THREE.BoxGeometry(sizeX, sizeY, sizeZ);
+
+            // Kiểm tra nếu có holes
+            if (
+                metadata.holes &&
+                Array.isArray(metadata.holes) &&
+                metadata.holes.length > 0
+            ) {
+                // Tạo mesh từ geometry chính
+                const mainMesh = new THREE.Mesh(
+                    mainGeometry,
+                    new THREE.MeshStandardMaterial()
+                );
+
+                // Áp dụng CSG để subtract holes
+                let resultCSG = CSG.fromMesh(mainMesh);
+
+                metadata.holes.forEach((hole) => {
+                    const holeWidth = hole.width;
+                    const holeHeight = hole.height;
+                    const holeDepth = hole.depth;
+
+                    // Tạo box cho hole
+                    const holeGeometry = new THREE.BoxGeometry(
+                        holeDepth,
+                        holeHeight,
+                        holeWidth
+                    );
+
+                    const holeMesh = new THREE.Mesh(
+                        holeGeometry,
+                        new THREE.MeshStandardMaterial()
+                    );
+
+                    // Đặt vị trí của hole theo center
+                    if (hole.center) {
+                        holeMesh.position.set(
+                            hole.center.x ?? 0,
+                            hole.center.y ?? 0, // vị trí thực sẽ phải + thêm position của main mesh
+                            hole.center.z ?? 0
+                        );
+                    }
+                    console.log(
+                        "Hole Mesh Position:",
+                        holeMesh.position,
+                        position[1]
+                    );
+
+                    holeMesh.updateMatrix();
+
+                    // Subtract hole từ main mesh
+                    const holeCSG = CSG.fromMesh(holeMesh);
+                    resultCSG = resultCSG.subtract(holeCSG);
+                });
+
+                // Chuyển CSG result về geometry
+                const resultMesh = CSG.toMesh(resultCSG, mainMesh.matrix);
+                return resultMesh.geometry;
+            }
+
+            return mainGeometry;
         }
-        return <boxGeometry args={[1, 1, 1]} />;
-    };
+
+        return new THREE.BoxGeometry(1, 1, 1);
+    }, [assetKey, metadata]);
 
     const shouldCastShadow = type !== "Floor";
     const shouldReceiveShadow = type === "Floor";
@@ -153,15 +217,16 @@ const ObjectRenderer = ({ objectData }) => {
                 />
             ) : (
                 <mesh
+                    uuid={id}
+                    ref={meshRef}
                     position={position}
                     rotation={rotation}
                     scale={scale}
                     castShadow={shouldCastShadow}
                     receiveShadow={shouldReceiveShadow}
                     userData={{ objectId: id, objectType: type, assetKey }}
+                    geometry={geometry}
                 >
-                    {renderGeometry()}
-                    {/* Chỉ gắn material cho procedural/default, KHÔNG gắn cho model/glb */}
                     <meshStandardMaterial {...materialProps} />
                 </mesh>
             )}

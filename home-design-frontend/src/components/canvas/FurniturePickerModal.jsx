@@ -9,22 +9,35 @@ import {
     Spin,
     Empty,
     message,
+    Radio,
 } from "antd";
 import { UploadOutlined, CheckOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import {
     fetchAssets,
     uploadFurnitureModel,
+    uploadOpeningModel,
 } from "../../store/slices/assetSlice";
 
-const FurniturePickerModal = ({ open, onClose, onSelect }) => {
+const OpeningPickerModal = ({ open, onClose, onSelect }) => {
     const dispatch = useDispatch();
-    const items = useSelector((s) => s.assets.items.furniture);
-    const loading = useSelector((s) => s.assets.loading.furniture);
+
+    // Lấy toàn bộ items & loading theo type động
+    const allItems = useSelector((s) => s.assets.items);
+    const allLoading = useSelector((s) => s.assets.loading);
+    // Selected mesh id từ canvas (nếu có)
+    const selectedMeshId = useSelector((s) => s.ui.selectedMesh);
+    // Danh sách objects hiện tại trong project
+    const { objects } = useSelector((s) => s.objects);
+
+    const [activeType, setActiveType] = useState("furniture"); // "furniture" | "opening"
     const [filter, setFilter] = useState("");
     const [selectedModel, setSelectedModel] = useState(null);
 
-    // State cho các file upload
+    const items = allItems[activeType] || [];
+    const loading = allLoading[activeType];
+
+    // State cho upload
     const [files, setFiles] = useState({
         obj: null,
         mtl: null,
@@ -32,20 +45,25 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
     });
     const [nameModel, setNameModel] = useState("");
 
+    // Fetch danh sách khi mở modal
     useEffect(() => {
         if (open && items.length === 0) {
-            dispatch(fetchAssets({ type: "furniture" }));
+            dispatch(fetchAssets({ type: activeType }));
         }
-    }, [open, items.length, dispatch]);
+    }, [open, activeType, items.length, dispatch]);
 
+    // Lọc model theo tên
     const filtered = useMemo(
         () =>
-            items.filter((model) =>
-                model.nameModel.toLowerCase().includes(filter.toLowerCase())
+            (items || []).filter((model) =>
+                model?.nameModel
+                    ?.toLowerCase?.()
+                    ?.includes(filter.toLowerCase())
             ),
         [items, filter]
     );
 
+    // Upload file (.obj, .mtl, .jpg/.png)
     const beforeUpload = (file) => {
         const ext = file.name.split(".").pop().toLowerCase();
         if (!["obj", "mtl", "jpg", "jpeg", "png"].includes(ext)) {
@@ -70,28 +88,37 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
         }
 
         if (!obj) {
-            message.warning("Vui lòng chọn file .obj ");
+            message.warning("Vui lòng chọn file .obj");
             return;
         }
 
         try {
-            const result = await dispatch(
-                uploadFurnitureModel({
-                    objFile: obj,
-                    mtlFile: mtl || null, // null nếu không có mtl
-                    textureFile: texture || null, // null nếu không có texture
-                    nameModel: nameModel.trim(),
-                })
-            ).unwrap();
+            if (activeType === "furniture") {
+                await dispatch(
+                    uploadFurnitureModel({
+                        objFile: obj,
+                        mtlFile: mtl || null,
+                        textureFile: texture || null,
+                        nameModel: nameModel.trim(),
+                    })
+                ).unwrap();
+            } else {
+                await dispatch(
+                    uploadOpeningModel({
+                        objFile: obj,
+                        mtlFile: mtl || null,
+                        textureFile: texture || null,
+                        nameModel: nameModel.trim(),
+                    })
+                ).unwrap();
+            }
 
             message.success("Upload thành công!");
 
-            // Reset form
             setFiles({ obj: null, mtl: null, texture: null });
             setNameModel("");
 
-            // Refresh list
-            dispatch(fetchAssets({ type: "furniture" }));
+            dispatch(fetchAssets({ type: activeType }));
         } catch (e) {
             console.error(e);
             message.error("Upload thất bại, vui lòng thử lại.");
@@ -99,21 +126,71 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
     };
 
     const confirm = () => {
-        if (selectedModel) {
-            onSelect?.(JSON.stringify(selectedModel));
+        console.log("selectedModel:", selectedModel);
+
+        if (!selectedModel) {
+            console.log("Showing warning...");
+            alert("Vui lòng chọn một model!"); // Test xem alert có hiện không
+            message.warning(
+                "Vui lòng chọn một model trước khi thêm vào scene!",
+                3
+            );
+            return;
         }
+
+        // Nếu đang thêm opening (door/window), ensure đã chọn một Wall trước
+        if (activeType === "opening") {
+            if (!selectedMeshId) {
+                alert("Vui lòng chọn một wall trước khi thêm opening!");
+                message.warning(
+                    "Vui lòng chọn một wall trước khi thêm opening!",
+                    3
+                );
+                return;
+            }
+
+            const targetObj = (objects || []).find(
+                (o) => o.id === selectedMeshId
+            );
+            const isWall =
+                targetObj &&
+                (targetObj.type === "Wall" || targetObj.type === "wall");
+            if (!isWall) {
+                alert(
+                    "Mesh được chọn không phải là wall. Vui lòng chọn wall trước khi thêm opening!"
+                );
+                message.warning(
+                    "Mesh được chọn không phải là wall. Vui lòng chọn wall trước khi thêm opening!",
+                    3
+                );
+                return;
+            }
+        }
+
+        onSelect?.(JSON.stringify(selectedModel));
         onClose?.();
     };
 
     return (
         <Modal
-            title="Select furniture"
+            title="Select model"
             open={open}
             onOk={confirm}
             onCancel={onClose}
             okText="Add to scene"
             width={820}
         >
+            {/* Bộ chọn loại asset */}
+            <Radio.Group
+                value={activeType}
+                onChange={(e) => setActiveType(e.target.value)}
+                style={{ marginBottom: 16 }}
+            >
+                <Radio.Button value="furniture">Furniture</Radio.Button>
+                <Radio.Button value="opening">Opening</Radio.Button>
+            </Radio.Group>
+
+            {/* Khu vực upload */}
             <Space
                 direction="vertical"
                 style={{ width: "100%", marginBottom: 12 }}
@@ -156,10 +233,15 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
                 </div>
             </Space>
 
+            {/* Danh sách model */}
             {loading ? (
                 <Spin />
             ) : filtered.length === 0 ? (
-                <Empty description="No furniture files" />
+                <Empty
+                    description={`No ${
+                        activeType === "furniture" ? "furniture" : "opening"
+                    } files`}
+                />
             ) : (
                 <div
                     style={{
@@ -255,4 +337,4 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
     );
 };
 
-export default FurniturePickerModal;
+export default OpeningPickerModal;

@@ -25,6 +25,10 @@ const objectProjectApi = {
         const url = `/ProjectObjects/${projectId}/${objectId}`;
         return axiosClient.get(url);
     },
+    createHole: (objectId, holeData) => {
+        const url = `/ProjectObjects/${objectId}/createhole`;
+        return axiosClient.post(url, holeData);
+    },
 };
 
 export default objectProjectApi;

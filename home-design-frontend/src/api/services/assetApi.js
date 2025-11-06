@@ -1,32 +1,43 @@
 import axiosClient from "../axiosClient";
 
-// type: 'texture' | 'furniture'
+// type: 'texture' | 'furniture' | 'opening'
 const assetApi = {
     list: async (type) => {
-        const path =
-            type === "furniture" ? "/Assets/furnitures" : "/Assets/textures";
+        let path = "/Assets/textures";
+
+        if (type === "furniture") path = "/Assets/furnitures";
+        else if (type === "opening") path = "/Assets/openings";
+
         const res = await axiosClient.get(path);
         const arr = Array.isArray(res) ? res : res?.data || [];
-        if (type === "furniture") {
+
+        if (type === "furniture" || type === "opening") {
+            // các loại model (object)
             return arr.filter((it) => it && typeof it === "object");
         }
+
+        // texture (string URL)
         return arr
             .map((it) => (typeof it === "string" ? it : it?.url))
             .filter(Boolean);
     },
+
     upload: async (type, file) => {
         const form = new FormData();
         form.append("file", file);
-        const path =
-            type === "furniture"
-                ? "/Assets/upload/furniture"
-                : "/Assets/upload/texture";
+
+        let path = "/Assets/upload/texture";
+        if (type === "furniture") path = "/Assets/upload/furniture";
+        else if (type === "opening") path = "/Assets/upload/opening";
+
         const res = await axiosClient.post(path, form, {
             headers: { "Content-Type": "multipart/form-data" },
         });
+
         const data = res?.data ?? res;
         return typeof data === "string" ? data : data?.url;
     },
+
     uploadFurnitureModel: async ({
         objFile,
         mtlFile,
@@ -35,12 +46,34 @@ const assetApi = {
     }) => {
         const form = new FormData();
         form.append("objFile", objFile);
-        form.append("mtlFile", mtlFile);
-        form.append("textureFile", textureFile);
+        if (mtlFile) form.append("mtlFile", mtlFile);
+        if (textureFile) form.append("textureFile", textureFile);
         form.append("nameModel", nameModel);
+
         const res = await axiosClient.post("/Assets/upload/furniture", form, {
             headers: { "Content-Type": "multipart/form-data" },
         });
+
+        return res?.data ?? res;
+    },
+
+    // Upload opening model (giống furniture)
+    uploadOpeningModel: async ({
+        objFile,
+        mtlFile,
+        textureFile,
+        nameModel,
+    }) => {
+        const form = new FormData();
+        form.append("objFile", objFile);
+        if (mtlFile) form.append("mtlFile", mtlFile);
+        if (textureFile) form.append("textureFile", textureFile);
+        form.append("nameModel", nameModel);
+
+        const res = await axiosClient.post("/Assets/upload/opening", form, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+
         return res?.data ?? res;
     },
 };

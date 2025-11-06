@@ -72,6 +72,50 @@ namespace home_design_backend.Controllers
             }
         }
 
+        [HttpPost("upload/opening")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadOpening([FromForm] FurnitureUploadDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.NameModel))
+                return BadRequest("nameModel is required");
+
+            if (dto.ObjFile == null)
+                return BadRequest("obj are required");
+
+            try
+            {
+                var objPath = await _blobService.UploadFileAsync(dto.ObjFile, $"openings/{dto.NameModel}");
+                var objUrl = await _blobService.GetFileUrlAsync(objPath);
+
+                string? textureUrl = null;
+                string? mtlUrl = null;
+
+                if (dto.MtlFile != null)
+                {
+                    var mtlPath = await _blobService.UploadFileAsync(dto.MtlFile, $"openings/{dto.NameModel}");
+                    mtlUrl = await _blobService.GetFileUrlAsync(mtlPath);
+                }
+
+                if (dto.TextureFile != null)
+                {
+                    var texturePath = await _blobService.UploadFileAsync(dto.TextureFile, $"openings/{dto.NameModel}");
+                    textureUrl = await _blobService.GetFileUrlAsync(texturePath);
+                }
+
+                return Ok(new
+                {
+                    objPath = objUrl,
+                    mtlPath = mtlUrl,
+                    texturePath = textureUrl,
+                    nameModel = dto.NameModel
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Upload failed: {ex.Message}");
+            }
+        }
+
 
         [HttpGet("url")]
         public async Task<IActionResult> GetPresignedUrl([FromQuery] string folder, [FromQuery] string filename)
@@ -92,6 +136,13 @@ namespace home_design_backend.Controllers
         {
             var furnitureModels = await _blobService.ListFurnitureModelsAsync("furnitures");
             return Ok(furnitureModels);
+        }
+
+        [HttpGet("openings")]
+        public async Task<IActionResult> ListOpenings()
+        {
+            var openingModels = await _blobService.ListFurnitureModelsAsync("openings");
+            return Ok(openingModels);
         }
     }
 }

@@ -1,0 +1,9 @@
+/* Đảm bảo message hiển thị trên Modal */
+.ant-message {
+    z-index: 10000 !important;
+}
+
+.ant-modal-mask,
+.ant-modal-wrap {
+    z-index: 1000 !important;
+}

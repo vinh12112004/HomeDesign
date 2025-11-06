@@ -55,5 +55,53 @@ namespace home_design_backend.Repositories
             await _dbContext.SaveChangesAsync();
             return true;
         }
+        public async Task<bool> AddHoleAsync(Guid wallId, CreateHoleDto holeDto)
+        {
+            var wall = await _dbContext.ProjectObjects.FirstOrDefaultAsync(po => po.Id == wallId);
+            if (wall == null) return false;
+
+            // Parse metadataJson hiện tại
+            var metadata = new Dictionary<string, object>();
+            if (!string.IsNullOrWhiteSpace(wall.MetadataJson))
+            {
+                metadata = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(wall.MetadataJson)
+                            ?? new Dictionary<string, object>();
+            }
+
+            // Chuẩn bị holes array
+            List<object> holes = new();
+            if (metadata.ContainsKey("holes"))
+            {
+                var json = metadata["holes"].ToString();
+                try
+                {
+                    holes = System.Text.Json.JsonSerializer.Deserialize<List<object>>(json) ?? new List<object>();
+                }
+                catch
+                {
+                    holes = new List<object>();
+                }
+            }
+
+            // Thêm hole mới
+            var newHole = new
+            {
+                width = holeDto.Width,
+                height = holeDto.Height,
+                depth = holeDto.Depth,
+                center = new { x = holeDto.Center.X, y = holeDto.Center.Y, z = holeDto.Center.Z }
+            };
+            holes.Add(newHole);
+
+            // Gán lại metadataJson
+            metadata["holes"] = holes;
+            wall.MetadataJson = System.Text.Json.JsonSerializer.Serialize(metadata);
+
+            _dbContext.Update(wall);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+
     }
 }

@@ -35,7 +35,24 @@ export const uploadFurnitureModel = createAsyncThunk(
     }
 );
 
-const initial = () => ({ texture: [], furniture: [] });
+export const uploadOpeningModel = createAsyncThunk(
+    "assets/uploadOpeningModel",
+    async ({ objFile, mtlFile, textureFile, nameModel }) => {
+        const model = await assetApi.uploadOpeningModel({
+            objFile,
+            mtlFile,
+            textureFile,
+            nameModel,
+        });
+        return model;
+    }
+);
+
+const initial = () => ({
+    texture: [],
+    furniture: [],
+    opening: [],
+});
 
 const assetSlice = createSlice({
     name: "assets",
@@ -86,6 +103,21 @@ const assetSlice = createSlice({
             .addCase(uploadFurnitureModel.rejected, (s, a) => {
                 s.loading.furniture = false;
                 s.error.furniture = a.error?.message || "Upload failed";
+            })
+            // Upload opening model
+            .addCase(uploadOpeningModel.pending, (s) => {
+                s.loading.opening = true;
+                s.error.opening = null;
+            })
+            .addCase(uploadOpeningModel.fulfilled, (s, a) => {
+                s.loading.opening = false;
+                if (a.payload) {
+                    s.items.opening.unshift(a.payload);
+                }
+            })
+            .addCase(uploadOpeningModel.rejected, (s, a) => {
+                s.loading.opening = false;
+                s.error.opening = a.error?.message || "Upload failed";
             });
     },
 });

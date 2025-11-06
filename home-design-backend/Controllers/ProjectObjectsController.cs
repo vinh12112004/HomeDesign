@@ -43,5 +43,14 @@ namespace home_design_backend.Controllers
             var result = await _projectObjectsRepository.DeleteAsync(id);
             return Ok(result);
         }
+        [HttpPost("{id}/createhole")]
+        public async Task<IActionResult> CreateHole(Guid id, [FromBody] CreateHoleDto holeDto)
+        {
+            var result = await _projectObjectsRepository.AddHoleAsync(id, holeDto);
+            if (!result) return NotFound("Wall not found or update failed");
+            return Ok("Hole added successfully");
+        }
+
+
     }
 }

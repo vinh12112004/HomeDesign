@@ -5,7 +5,7 @@ import { useThree } from "@react-three/fiber";
 import { updateObject } from "../../store/slices/objectSlice";
 
 export default function TransformControlsManager() {
-    const { selectedMesh, showTranformControls } = useSelector(
+    const { selectedMesh, showTranformControls, transformMode } = useSelector(
         (state) => state.ui
     );
     const { objects } = useSelector((state) => state.objects);
@@ -39,18 +39,23 @@ export default function TransformControlsManager() {
             if (transformControls.object) {
                 const pos = transformControls.object.position;
                 const rot = transformControls.object.rotation;
-                console.log(`🔄 Đang kéo:`, {
-                    position: {
-                        x: pos.x.toFixed(2),
-                        y: pos.y.toFixed(2),
-                        z: pos.z.toFixed(2),
-                    },
-                    rotation: {
-                        x: rot.x.toFixed(2),
-                        y: rot.y.toFixed(2),
-                        z: rot.z.toFixed(2),
-                    },
-                });
+                console.log(
+                    `🔄 Đang ${
+                        transformMode === "translate" ? "di chuyển" : "xoay"
+                    }:`,
+                    {
+                        position: {
+                            x: pos.x.toFixed(2),
+                            y: pos.y.toFixed(2),
+                            z: pos.z.toFixed(2),
+                        },
+                        rotation: {
+                            x: rot.x.toFixed(2),
+                            y: rot.y.toFixed(2),
+                            z: rot.z.toFixed(2),
+                        },
+                    }
+                );
             }
         };
 
@@ -70,7 +75,7 @@ export default function TransformControlsManager() {
                 onObjectChange
             );
         };
-    }, [gl]);
+    }, [gl, transformMode]);
 
     // Attach TransformControls vào object được chọn
     useEffect(() => {
@@ -102,12 +107,14 @@ export default function TransformControlsManager() {
             console.log(
                 "🎯 Đã attach TransformControls vào:",
                 selectedMesh,
-                targetGroup
+                targetGroup,
+                "Mode:",
+                transformMode
             );
         } else {
             console.warn("⚠️ Không tìm thấy object với ID:", selectedMesh);
         }
-    }, [selectedMesh, showTranformControls, scene]);
+    }, [selectedMesh, showTranformControls, scene, transformMode]);
 
     // Xử lý khi kéo xong (mouseUp)
     const handleMouseUp = () => {
@@ -127,16 +134,37 @@ export default function TransformControlsManager() {
             return;
         }
 
-        // Chuẩn bị data để update
+        // Parse lại dữ liệu cũ (nếu có)
+        const oldPosition = currentObject.positionJson
+            ? JSON.parse(currentObject.positionJson)
+            : { x: 0, y: 0, z: 0 };
+        const oldRotation = currentObject.rotationJson
+            ? JSON.parse(currentObject.rotationJson)
+            : { x: 0, y: 0, z: 0 };
+
+        // Chuẩn bị dữ liệu đầy đủ
         const fullObjectData = {
             type: currentObject.type,
             assetKey: currentObject.assetKey,
             positionJson: JSON.stringify({
-                x: newPosition.x,
-                y: newPosition.y,
-                z: newPosition.z,
+                x:
+                    transformMode === "translate"
+                        ? newPosition.x
+                        : oldPosition.x,
+                y:
+                    transformMode === "translate"
+                        ? newPosition.y
+                        : oldPosition.y,
+                z:
+                    transformMode === "translate"
+                        ? newPosition.z
+                        : oldPosition.z,
             }),
-            rotationJson: currentObject.rotationJson,
+            rotationJson: JSON.stringify({
+                x: transformMode === "rotate" ? newRotation.x : oldRotation.x,
+                y: transformMode === "rotate" ? newRotation.y : oldRotation.y,
+                z: transformMode === "rotate" ? newRotation.z : oldRotation.z,
+            }),
             scaleJson: currentObject.scaleJson,
             metadataJson: currentObject.metadataJson,
         };
@@ -149,7 +177,12 @@ export default function TransformControlsManager() {
             })
         );
 
-        console.log("✅ Cập nhật vị trí vật thể:", fullObjectData);
+        console.log(
+            `✅ Cập nhật ${
+                transformMode === "translate" ? "vị trí" : "góc xoay"
+            } vật thể:`,
+            fullObjectData
+        );
     };
 
     // Chỉ render khi ở fixed mode và có object được chọn
@@ -160,7 +193,7 @@ export default function TransformControlsManager() {
     return (
         <TransformControls
             ref={transformRef}
-            mode="translate"
+            mode={transformMode}
             onMouseUp={handleMouseUp}
             size={0.8}
             showX={true}

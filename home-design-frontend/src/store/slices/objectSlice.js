@@ -33,6 +33,15 @@ export const deleteObject = createAsyncThunk(
     }
 );
 
+export const createHole = createAsyncThunk(
+    "objects/createHole",
+    async ({ objectId, holeData, projectId }) => {
+        await objectProjectApi.createHole(objectId, holeData);
+        const response = await objectProjectApi.getAll(projectId);
+        return response;
+    }
+);
+
 const initialState = {
     objects: [],
     loading: false,
@@ -78,6 +87,17 @@ const objectSlice = createSlice({
                 state.objects = state.objects.filter(
                     (obj) => obj.id !== action.payload
                 );
+            })
+            .addCase(createHole.pending, (state) => {
+                state.isCreatingHole = true;
+            })
+            .addCase(createHole.fulfilled, (state, action) => {
+                state.isCreatingHole = false;
+                state.objects = action.payload;
+            })
+            .addCase(createHole.rejected, (state, action) => {
+                state.isCreatingHole = false;
+                state.error = action.error.message;
             });
     },
 });

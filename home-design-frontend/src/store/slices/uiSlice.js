@@ -1,45 +1,62 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  viewMode: 'free',
-  hoveredMesh: null,
-  selectedMesh: null,
-  showObjectEditor: false,
-  showTranformControls: false,
+    viewMode: "free",
+    hoveredMesh: null,
+    selectedMesh: null,
+    showObjectEditor: false,
+    showTranformControls: false,
+    transformMode: "translate",
 };
 
 const uiSlice = createSlice({
-  name: 'ui',
-  initialState,
-  reducers: {
-    setViewMode: (state, action) => {
-      state.viewMode = action.payload;
+    name: "ui",
+    initialState,
+    reducers: {
+        setViewMode: (state, action) => {
+            state.viewMode = action.payload;
+        },
+        toggleViewMode: (state) => {
+            state.viewMode = state.viewMode === "free" ? "fixed" : "free";
+        },
+        setHoveredMesh: (state, action) => {
+            state.hoveredMesh = action.payload;
+        },
+        setSelectedMesh: (state, action) => {
+            state.selectedMesh = action.payload;
+        },
+        clearSelectedMesh: (state) => {
+            state.selectedMesh = null;
+            state.showObjectEditor = false;
+            state.showTranformControls = false;
+        },
+        openObjectEditor: (state) => {
+            state.showObjectEditor = true;
+        },
+        openTransformControls: (state, action) => {
+            state.showTranformControls = true;
+            state.transformMode = action.payload || "translate"; // Mặc định là "translate"
+        },
+        closeObjectEditor: (state) => {
+            state.selectedMesh = null;
+            state.showObjectEditor = false;
+        },
+        closeTransformControls: (state) => {
+            state.showTranformControls = false;
+            state.selectedMesh = null;
+        },
     },
-    toggleViewMode: (state) => {
-      state.viewMode = state.viewMode === 'free' ? 'fixed' : 'free';
-    },
-    setHoveredMesh: (state, action) => {
-      state.hoveredMesh = action.payload;
-    },
-    setSelectedMesh: (state, action) => {
-      state.selectedMesh = action.payload;
-    },
-    openObjectEditor: (state) => {
-      state.showObjectEditor = true;
-    },
-    openTransformControls: (state) => {
-      state.showTranformControls = true;
-    },
-    closeObjectEditor: (state) => {
-      state.selectedMesh = null;
-      state.showObjectEditor = false;
-    },
-    closeTransformControls: (state) => {
-      state.showTranformControls = false;
-      state.selectedMesh = null;
-    }
-  },
 });
 
-export const { setViewMode, toggleViewMode, setHoveredMesh, setSelectedMesh, openObjectEditor, closeObjectEditor, openTransformControls, closeTransformControls } = uiSlice.actions;
+export const {
+    setViewMode,
+    toggleViewMode,
+    setHoveredMesh,
+    setSelectedMesh,
+    openObjectEditor,
+    closeObjectEditor,
+    openTransformControls,
+    closeTransformControls,
+    clearSelectedMesh,
+} = uiSlice.actions;
 export default uiSlice.reducer;

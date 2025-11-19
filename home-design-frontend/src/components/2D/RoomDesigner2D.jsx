@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { closeRoomDesigner2D } from "../../store/slices/uiSlice";
 import { addRoom } from "../../store/slices/projectSlice";
+import { fetchObjects } from "../../store/slices/objectSlice";
 import {
     Layout,
     Card,
@@ -746,9 +747,8 @@ export default function RoomDesigner2D() {
                     })
                 ).unwrap();
             });
-            dispatch(fetchObjects(projectId));
             await Promise.all(promises);
-
+            await dispatch(fetchObjects(currentProject.id)).unwrap();
             message.success(
                 `✅ Đã lưu thành công ${addedRooms.length} phòng vào database!`
             );

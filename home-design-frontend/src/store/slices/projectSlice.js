@@ -25,6 +25,13 @@ export const deleteProject = createAsyncThunk(
         return projectId;
     }
 );
+export const addRoom = createAsyncThunk(
+    "projects/addRoom",
+    async ({ projectId, roomData }) => {
+        const response = await projectApi.addRoom(projectId, roomData);
+        return response;
+    }
+);
 
 const initialState = {
     projects: [],
@@ -32,6 +39,7 @@ const initialState = {
     loading: false,
     isCreating: false,
     isDeleting: false,
+    isAddingRoom: false,
     error: null,
 };
 
@@ -87,6 +95,18 @@ const projectSlice = createSlice({
             })
             .addCase(deleteProject.rejected, (state, action) => {
                 state.isDeleting = false;
+                state.error = action.error.message;
+            })
+            // Add room
+            .addCase(addRoom.pending, (state) => {
+                state.isAddingRoom = true;
+                state.error = null;
+            })
+            .addCase(addRoom.fulfilled, (state, action) => {
+                state.isAddingRoom = false;
+            })
+            .addCase(addRoom.rejected, (state, action) => {
+                state.isAddingRoom = false;
                 state.error = action.error.message;
             });
     },

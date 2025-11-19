@@ -6,13 +6,14 @@ import RoomScene from "../components/canvas/RoomScene";
 import CanvasHeader from "../components/canvas/CanvasHeader";
 import SideMenu from "../components/canvas/SideMenu";
 import ViewModeToggle from "../components/canvas/ViewModeToggle";
-import ObjectEditor from "../components/canvas/ObjectEditor";
+import ObjectEditor from "../components/canvas/ObjectEditor/ObjectEditor";
+import RoomDesigner2D from "../components/2D/RoomDesigner2D";
 
 export default function CanvasPage() {
     const controlsRef = useRef();
 
     const { currentProject } = useSelector((state) => state.projects);
-    const { viewMode } = useSelector((state) => state.ui);
+    const { showRoomDesigner2D } = useSelector((state) => state.ui);
 
     if (!currentProject) {
         return (
@@ -68,6 +69,7 @@ export default function CanvasPage() {
                 </div>
             </div>
             <ObjectEditor />
+            {showRoomDesigner2D && <RoomDesigner2D />}
         </div>
     );
 }

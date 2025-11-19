@@ -12,7 +12,7 @@ import {
 } from "antd";
 import { PlusOutlined, UploadOutlined, CheckOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAssets, uploadAsset } from "../../store/slices/assetSlice";
+import { fetchAssets, uploadAsset } from "../../../store/slices/assetSlice";
 
 const TexturePicker = ({ value, onChange }) => {
     const dispatch = useDispatch();

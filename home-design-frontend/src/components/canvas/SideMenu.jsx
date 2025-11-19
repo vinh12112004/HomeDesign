@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Divider, Modal, Form, InputNumber, message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import FurniturePickerModal from "./FurniturePickerModal";
+import FurniturePickerModal from "./FurniturePickerModal/FurniturePickerModal";
 import {
     createObject,
     fetchObjects,
@@ -13,6 +13,7 @@ import {
     openTransformControls,
     closeTransformControls,
     clearSelectedMesh,
+    openRoomDesigner2D,
 } from "../../store/slices/uiSlice";
 const SideMenu = () => {
     const dispatch = useDispatch();
@@ -56,6 +57,9 @@ const SideMenu = () => {
         setIsRotating(false);
     };
 
+    const handleAddRoom = () => {
+        dispatch(openRoomDesigner2D());
+    };
     const handlePropertiesClick = () => {
         if (selectedMesh) {
             dispatch(openObjectEditor());
@@ -199,6 +203,9 @@ const SideMenu = () => {
                     disabled={!selectedMesh}
                 >
                     Deselect
+                </Button>
+                <Button type="default" onClick={handleAddRoom}>
+                    Add Room
                 </Button>
 
                 <div style={{ flex: 1 }} />

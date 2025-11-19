@@ -13,6 +13,10 @@ const projectApi = {
         const url = `/Project/${projectId}`;
         return axiosClient.delete(url);
     },
+    addRoom: (projectId, data) => {
+        const url = `/Project/${projectId}/rooms`;
+        return axiosClient.post(url, data);
+    },
 };
 
 export default projectApi;

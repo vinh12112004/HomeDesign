@@ -82,12 +82,7 @@ export default function RoomDesigner2D() {
 
         const threshold = 0.001;
 
-        return !(
-            r1Right <= r2Left + threshold ||
-            r1Left >= r2Right - threshold ||
-            r1Bottom <= r2Top + threshold ||
-            r1Top >= r2Bottom - threshold
-        );
+        return !true;
     };
 
     // calculate valid zones
@@ -103,7 +98,7 @@ export default function RoomDesigner2D() {
                 x: room.x + room.width / 2 + newWidth / 2,
                 z: room.z,
                 width: newWidth,
-                length: rightZoneLength,
+                length: rightZoneLength + newLength * 2 - 2,
                 side: "right",
                 adjacentRoom: room,
                 minZ: room.z - rightZoneLength / 2,
@@ -116,7 +111,7 @@ export default function RoomDesigner2D() {
                 x: room.x - room.width / 2 - newWidth / 2,
                 z: room.z,
                 width: newWidth,
-                length: leftZoneLength,
+                length: leftZoneLength + newLength * 2 - 2,
                 side: "left",
                 adjacentRoom: room,
                 minZ: room.z - leftZoneLength / 2,
@@ -128,7 +123,7 @@ export default function RoomDesigner2D() {
             zones.push({
                 x: room.x,
                 z: room.z - room.length / 2 - newLength / 2,
-                width: topZoneWidth,
+                width: topZoneWidth + newWidth * 2 - 2,
                 length: newLength,
                 side: "top",
                 adjacentRoom: room,
@@ -141,7 +136,7 @@ export default function RoomDesigner2D() {
             zones.push({
                 x: room.x,
                 z: room.z + room.length / 2 + newLength / 2,
-                width: bottomZoneWidth,
+                width: bottomZoneWidth + newWidth * 2 - 2,
                 length: newLength,
                 side: "bottom",
                 adjacentRoom: room,
@@ -181,15 +176,15 @@ export default function RoomDesigner2D() {
             return {
                 x: zone.fixedX,
                 z: Math.max(
-                    zone.minZ + roomLength / 2,
-                    Math.min(zone.maxZ - roomLength / 2, z)
+                    zone.minZ - roomLength / 2 + 1,
+                    Math.min(zone.maxZ + roomLength / 2 - 1, z)
                 ),
             };
         } else {
             return {
                 x: Math.max(
-                    zone.minX + roomWidth / 2,
-                    Math.min(zone.maxX - roomWidth / 2, x)
+                    zone.minX - roomWidth / 2 + 1,
+                    Math.min(zone.maxX + roomWidth / 2 - 1, x)
                 ),
                 z: zone.fixedZ,
             };
@@ -197,7 +192,7 @@ export default function RoomDesigner2D() {
     };
 
     const isPointInValidZone = (x, z) => !!findZoneContainingPoint(x, z);
-
+    // trả về toạ độ trong mặt 2d dựa trên toạ độ trỏ chuột trên màn hình
     const screenToWorld = (screenX, screenY) => {
         const canvas = canvasRef.current;
         const rect = canvas.getBoundingClientRect();

@@ -42,34 +42,40 @@ export default function CanvasPage() {
                 <CanvasHeader />
             </div>
 
-            <div style={{ flexShrink: 0 }}>
-                <SideMenu />
-            </div>
-
-            <div
-                style={{
-                    flexGrow: 1,
-                    position: "relative",
-                    overflow: "hidden",
-                    background: "#000",
-                }}
-            >
-                <RoomScene height={height} controlsRef={controlsRef} />
-
-                <div
-                    style={{
-                        pointerEvents: "none",
-                        position: "absolute",
-                        inset: 0,
-                    }}
-                >
-                    <div style={{ pointerEvents: "auto" }}>
-                        <ViewModeToggle />
+            {showRoomDesigner2D ? (
+                <RoomDesigner2D />
+            ) : (
+                <>
+                    <div style={{ flexShrink: 0 }}>
+                        <SideMenu />
                     </div>
-                </div>
-            </div>
-            <ObjectEditor />
-            {showRoomDesigner2D && <RoomDesigner2D />}
+
+                    <div
+                        style={{
+                            flexGrow: 1,
+                            position: "relative",
+                            overflow: "hidden",
+                            background: "#000",
+                        }}
+                    >
+                        <RoomScene height={height} controlsRef={controlsRef} />
+
+                        <div
+                            style={{
+                                pointerEvents: "none",
+                                position: "absolute",
+                                inset: 0,
+                            }}
+                        >
+                            <div style={{ pointerEvents: "auto" }}>
+                                <ViewModeToggle />
+                            </div>
+                        </div>
+                    </div>
+
+                    <ObjectEditor />
+                </>
+            )}
         </div>
     );
 }

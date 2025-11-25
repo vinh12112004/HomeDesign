@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { closeRoomDesigner2D } from "../../store/slices/uiSlice";
 import { addRoom } from "../../store/slices/projectSlice";
 import { fetchObjects } from "../../store/slices/objectSlice";
+import { doRoomsOverlap, calculateValidZones } from "../../utils/roomCalculations";
 import {
     Layout,
     Card,
@@ -68,93 +69,13 @@ export default function RoomDesigner2D() {
             };
         });
 
-    // overlap check
-    const doRoomsOverlap = (r1, r2) => {
-        const r1Left = r1.x - r1.width / 2;
-        const r1Right = r1.x + r1.width / 2;
-        const r1Top = r1.z - r1.length / 2;
-        const r1Bottom = r1.z + r1.length / 2;
-
-        const r2Left = r2.x - r2.width / 2;
-        const r2Right = r2.x + r2.width / 2;
-        const r2Top = r2.z - r2.length / 2;
-        const r2Bottom = r2.z + r2.length / 2;
-
-        const threshold = 0.001;
-
-        return !true;
-    };
-
-    // calculate valid zones
-    const calculateValidZones = () => {
-        const allRooms = [...existingRooms, ...addedRooms];
-        const zones = [];
-        const newWidth = roomWidth;
-        const newLength = roomLength;
-
-        allRooms.forEach((room) => {
-            const rightZoneLength = Math.max(room.length, newLength);
-            zones.push({
-                x: room.x + room.width / 2 + newWidth / 2,
-                z: room.z,
-                width: newWidth,
-                length: rightZoneLength + newLength * 2 - 2,
-                side: "right",
-                adjacentRoom: room,
-                minZ: room.z - rightZoneLength / 2,
-                maxZ: room.z + rightZoneLength / 2,
-                fixedX: room.x + room.width / 2 + newWidth / 2,
-            });
-
-            const leftZoneLength = Math.max(room.length, newLength);
-            zones.push({
-                x: room.x - room.width / 2 - newWidth / 2,
-                z: room.z,
-                width: newWidth,
-                length: leftZoneLength + newLength * 2 - 2,
-                side: "left",
-                adjacentRoom: room,
-                minZ: room.z - leftZoneLength / 2,
-                maxZ: room.z + leftZoneLength / 2,
-                fixedX: room.x - room.width / 2 - newWidth / 2,
-            });
-
-            const topZoneWidth = Math.max(room.width, newWidth);
-            zones.push({
-                x: room.x,
-                z: room.z - room.length / 2 - newLength / 2,
-                width: topZoneWidth + newWidth * 2 - 2,
-                length: newLength,
-                side: "top",
-                adjacentRoom: room,
-                minX: room.x - topZoneWidth / 2,
-                maxX: room.x + topZoneWidth / 2,
-                fixedZ: room.z - room.length / 2 - newLength / 2,
-            });
-
-            const bottomZoneWidth = Math.max(room.width, newWidth);
-            zones.push({
-                x: room.x,
-                z: room.z + room.length / 2 + newLength / 2,
-                width: bottomZoneWidth + newWidth * 2 - 2,
-                length: newLength,
-                side: "bottom",
-                adjacentRoom: room,
-                minX: room.x - bottomZoneWidth / 2,
-                maxX: room.x + bottomZoneWidth / 2,
-                fixedZ: room.z + room.length / 2 + newLength / 2,
-            });
-        });
-
-        const valid = zones.filter((zone) => {
-            return !allRooms.some((room) => doRoomsOverlap(zone, room));
-        });
-
-        return valid;
-    };
-
     useEffect(() => {
-        setValidZones(calculateValidZones());
+        setValidZones(calculateValidZones(
+            existingRooms,
+            addedRooms,
+            roomWidth,
+            roomLength
+        ));
     }, [roomWidth, roomLength, addedRooms]);
 
     const findZoneContainingPoint = (x, z) => {
@@ -193,12 +114,20 @@ export default function RoomDesigner2D() {
 
     const isPointInValidZone = (x, z) => !!findZoneContainingPoint(x, z);
     // trả về toạ độ trong mặt 2d dựa trên toạ độ trỏ chuột trên màn hình
-    const screenToWorld = (screenX, screenY) => {
-        const canvas = canvasRef.current;
-        const rect = canvas.getBoundingClientRect();
-        const x = screenX - rect.left;
-        const y = screenY - rect.top;
+    const screenToWorld = (clientX, clientY) => {
+        const { x, y } = getMousePos({ clientX, clientY });
         return { x: (x - offsetX) / scale, z: (y - offsetY) / scale };
+    };
+
+    const getMousePos = (e) => {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const scaleX = canvasRef.current.width / rect.width;
+        const scaleY = canvasRef.current.height / rect.height;
+
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY,
+        };
     };
 
     const isClickOnCenter = (mouseX, mouseY) => {
@@ -241,9 +170,7 @@ export default function RoomDesigner2D() {
 
     const handleMouseDown = (e) => {
         const canvas = canvasRef.current;
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+        const { x: mouseX, y: mouseY } = getMousePos(e);
 
         // If space is pressed, start panning
         if (isSpacePressed) {
@@ -281,9 +208,7 @@ export default function RoomDesigner2D() {
 
     const handleMouseMove = (e) => {
         const canvas = canvasRef.current;
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+        const { x: mouseX, y: mouseY } = getMousePos(e);
 
         // Handle panning
         if (isPanning) {
@@ -345,10 +270,7 @@ export default function RoomDesigner2D() {
     // Handle mouse wheel for zoom
     const handleWheel = (e) => {
         e.preventDefault();
-        const canvas = canvasRef.current;
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+        const { x: mouseX, y: mouseY } = getMousePos(e);
 
         // Get world position before zoom
         const worldX = (mouseX - offsetX) / scale;
@@ -407,13 +329,13 @@ export default function RoomDesigner2D() {
         // grid
         ctx.strokeStyle = "#e0e0e0";
         ctx.lineWidth = 1;
-        for (let x = 0; x <= canvas.width; x += scale) {
+        for (let x = -offsetX % scale; x <= canvas.width; x += scale) {
             ctx.beginPath();
             ctx.moveTo(x, 0);
             ctx.lineTo(x, canvas.height);
             ctx.stroke();
         }
-        for (let y = 0; y <= canvas.height; y += scale) {
+        for (let y = -offsetY % scale; y <= canvas.height; y += scale) {
             ctx.beginPath();
             ctx.moveTo(0, y);
             ctx.lineTo(canvas.width, y);

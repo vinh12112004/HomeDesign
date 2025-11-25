@@ -1,0 +1,11 @@
+﻿services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: homedesigndb
+    environment:
+      - SA_PASSWORD=StrongPass@123
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d

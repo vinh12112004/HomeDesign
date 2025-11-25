@@ -1,6 +1,7 @@
-﻿// Controllers/RoomsController.cs
+﻿// Controllers/ProjectController.cs
 using home_design_backend.Data;
 using home_design_backend.DTOs;
+using home_design_backend.Models;
 using home_design_backend.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,44 +15,100 @@ namespace HomeDesign.Backend.Controllers
     [Route("api/[controller]")]
     public class ProjectController : ControllerBase
     {
-        private readonly IRoomRepository _roomRepository;
+        private readonly IProjectRepository _projectRepository;
 
-        public ProjectController(IRoomRepository roomRepository)
+        public ProjectController(IProjectRepository projectRepository)
         {
-           _roomRepository = roomRepository;
+            _projectRepository = projectRepository;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateRoom([FromBody] RoomDTO room)
+        public async Task<IActionResult> CreateProject([FromBody] CreateProjectDTO project)
         {
-            await _roomRepository.CreateAsync(room);
-            return Ok("Create Success");
+            try
+            {
+                var result = await _projectRepository.CreateAsync(project);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Lỗi khi tạo project", error = ex.Message });
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var rooms = await _roomRepository.GetAllAsync();
-            return Ok(rooms);
+            var projects = await _projectRepository.GetAllAsync();
+            return Ok(projects);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
-            var room = await _roomRepository.GetAsync(id);
+            var project = await _projectRepository.GetAsync(id);
 
-            if (room == null) return NotFound();
-            return Ok(room);
+            if (project == null) return NotFound(new { message = "Project không tồn tại" });
+            return Ok(project);
         }
-        [HttpPut]
-        public async Task<IActionResult> Update(Guid id, [FromBody] RoomDTO room)
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] ProjectDTO project)
         {
-            return Ok(await _roomRepository.UpdateAsync(id, room));
+            var result = await _projectRepository.UpdateAsync(id, project);
+            if (!result) return NotFound(new { message = "Project không tồn tại" });
+
+            return Ok(new { message = "Cập nhật thành công" });
         }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            return Ok(await _roomRepository.DeleteAsync(id));
+            try
+            {
+                var result = await _projectRepository.DeleteAsync(id);
+                if (!result) return NotFound(new { message = "Project không tồn tại" });
+
+                return Ok(new { message = "Xóa project thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Lỗi khi xóa project", error = ex.Message });
+            }
+        }
+
+        [HttpPost("{projectId}/rooms")]
+        public async Task<IActionResult> AddRoom(Guid projectId, [FromBody] CreateRoomDTO dto)
+        {
+            try
+            {
+                // Validate DTO
+                if (dto.Width <= 0 || dto.Length <= 0 || dto.Height <= 0)
+                {
+                    return BadRequest(new { message = "Kích thước phòng phải lớn hơn 0" });
+                }
+
+                var roomObjects = await _projectRepository.AddRoomAsync(dto, projectId);
+
+                if (roomObjects == null)
+                    return NotFound(new { message = "Project không tồn tại" });
+
+                return Ok(new
+                {
+                    message = "Phòng được tạo thành công",
+                    objectCount = roomObjects.Count,
+                    objects = roomObjects
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = "Lỗi khi thêm phòng",
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
         }
     }
 }

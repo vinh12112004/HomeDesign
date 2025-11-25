@@ -2,7 +2,7 @@
 
 namespace home_design_backend.Models
 {
-    public class Room
+    public class Project
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
@@ -13,6 +13,6 @@ namespace home_design_backend.Models
         public DateTime Modified { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public ICollection<RoomObject> Objects { get; set; }
+        public ICollection<ProjectObject> Objects { get; set; } = new List<ProjectObject>();
     }
 }

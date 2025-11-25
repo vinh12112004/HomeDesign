@@ -8,7 +8,7 @@ namespace home_design_backend.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        public DbSet<Room> Rooms { get; set; }
-        public DbSet<RoomObject> RoomObjects { get; set; }
+        public DbSet<Project> Projects { get; set; }
+        public DbSet<ProjectObject> ProjectObjects { get; set; }
     }
 }

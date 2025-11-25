@@ -1,11 +1,13 @@
 ﻿using home_design_backend.AutoMapper;
 using home_design_backend.Data;
 using home_design_backend.Repositories;
+using home_design_backend.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<IBlobStorageService, MinioStorageService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -32,7 +34,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddAutoMapper(typeof(AutoMapperConfig));
 
-builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IProjectObjectsRepository, ProjectObjectsRepository>();
 
 var app = builder.Build();
 
@@ -50,5 +53,12 @@ app.UseAuthorization();
 app.UseCors(MyAllowSpecificOrigins);
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated(); // Tạo database nếu chưa có
+}
+
 
 app.Run();

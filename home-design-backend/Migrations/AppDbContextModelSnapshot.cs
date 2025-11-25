@@ -22,7 +22,7 @@ namespace home_design_backend.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("home_design_backend.Models.Room", b =>
+            modelBuilder.Entity("home_design_backend.Models.Project", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -53,10 +53,10 @@ namespace home_design_backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Rooms");
+                    b.ToTable("Projects");
                 });
 
-            modelBuilder.Entity("home_design_backend.Models.RoomObject", b =>
+            modelBuilder.Entity("home_design_backend.Models.ProjectObject", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -74,7 +74,7 @@ namespace home_design_backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("RoomId")
+                    b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("RotationJson")
@@ -91,23 +91,23 @@ namespace home_design_backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoomId");
+                    b.HasIndex("ProjectId");
 
-                    b.ToTable("RoomObjects");
+                    b.ToTable("ProjectObjects");
                 });
 
-            modelBuilder.Entity("home_design_backend.Models.RoomObject", b =>
+            modelBuilder.Entity("home_design_backend.Models.ProjectObject", b =>
                 {
-                    b.HasOne("home_design_backend.Models.Room", "Room")
+                    b.HasOne("home_design_backend.Models.Project", "Project")
                         .WithMany("Objects")
-                        .HasForeignKey("RoomId")
+                        .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Room");
+                    b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("home_design_backend.Models.Room", b =>
+            modelBuilder.Entity("home_design_backend.Models.Project", b =>
                 {
                     b.Navigation("Objects");
                 });

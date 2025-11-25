@@ -1,11 +1,10 @@
 ﻿namespace home_design_backend.Models
 {
-    public class RoomObject
+    public class ProjectObject
     {
         public Guid Id { get; set; }
-        public Guid RoomId { get; set; }
-        public Room Room { get; set; }
-
+        public Guid ProjectId { get; set; }
+        public Project Project { get; set; }
         public string Type { get; set; }
         public string AssetKey { get; set; }
 

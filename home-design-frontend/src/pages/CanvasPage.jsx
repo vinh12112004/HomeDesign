@@ -13,7 +13,7 @@ export default function CanvasPage() {
     const controlsRef = useRef();
 
     const { currentProject } = useSelector((state) => state.projects);
-    const { showRoomDesigner2D } = useSelector((state) => state.ui);
+    const { showAddRoom2D } = useSelector((state) => state.ui);
 
     if (!currentProject) {
         return (
@@ -42,7 +42,7 @@ export default function CanvasPage() {
                 <CanvasHeader />
             </div>
 
-            {showRoomDesigner2D ? (
+            {showAddRoom2D ? (
                 <RoomDesigner2D />
             ) : (
                 <>

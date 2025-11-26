@@ -13,7 +13,8 @@ import {
     openTransformControls,
     closeTransformControls,
     clearSelectedMesh,
-    openRoomDesigner2D,
+    openAddRoom2D,
+    openMoveRoom2D,
 } from "../../store/slices/uiSlice";
 const SideMenu = () => {
     const dispatch = useDispatch();
@@ -58,7 +59,7 @@ const SideMenu = () => {
     };
 
     const handleAddRoom = () => {
-        dispatch(openRoomDesigner2D());
+        dispatch(openAddRoom2D());
     };
     const handlePropertiesClick = () => {
         if (selectedMesh) {
@@ -207,7 +208,9 @@ const SideMenu = () => {
                 <Button type="default" onClick={handleAddRoom}>
                     Add Room
                 </Button>
-
+                <Button type="default" onClick={() => dispatch(openMoveRoom2D())}>
+                    Move Room
+                </Button>
                 <div style={{ flex: 1 }} />
                 <Divider
                     type="vertical"

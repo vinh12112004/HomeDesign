@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using home_design_backend.Data;
 
@@ -11,9 +12,11 @@ using home_design_backend.Data;
 namespace home_design_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251126150236_addRoomid")]
+    partial class addRoomid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,32 +100,6 @@ namespace home_design_backend.Migrations
                     b.HasIndex("ProjectId");
 
                     b.ToTable("ProjectObjects");
-                });
-
-            modelBuilder.Entity("home_design_backend.Models.Room", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("OffsetX")
-                        .HasColumnType("real");
-
-                    b.Property<float>("OffsetY")
-                        .HasColumnType("real");
-
-                    b.Property<float>("OffsetZ")
-                        .HasColumnType("real");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Rooms");
                 });
 
             modelBuilder.Entity("home_design_backend.Models.ProjectObject", b =>

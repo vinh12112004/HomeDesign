@@ -9,5 +9,6 @@
         public string RotationJson { get; set; } = string.Empty;
         public string ScaleJson { get; set; } = string.Empty;
         public string MetadataJson { get; set; } = string.Empty;
+        public Guid RoomId { get; set; }
     }
 }

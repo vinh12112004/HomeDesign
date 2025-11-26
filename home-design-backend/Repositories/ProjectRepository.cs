@@ -54,7 +54,7 @@ namespace home_design_backend.Repositories
             await _dbContext.SaveChangesAsync();
             return true;
         }
-        private void AddDefaultObjectsInline(Project project)
+        private Task AddDefaultObjectsInline(Project project)
         {
             // Bạn có thể đổi ProjectObject -> RoomObject nếu tên entity khác
             float width = project.Width;
@@ -67,12 +67,25 @@ namespace home_design_backend.Repositories
             float wallThickness = 0.1f;
 
             string Scale1 = Serialize(new { x = 1, y = 1, z = 1 });
+            // Tạo Room mặc định cho project
+            var defaultRoom = new Room
+            {
+                Id = Guid.NewGuid(),
+                ProjectId = project.Id,
+                Name = "Default Room",
+                OffsetX = 0,
+                OffsetY = 0,
+                OffsetZ = 0
+            };
 
+            _dbContext.Rooms.Add(defaultRoom);
+            Console.WriteLine($"{defaultRoom.Id}");
             // Floor
             project.Objects.Add(new ProjectObject
             {
                 Id = Guid.NewGuid(),
                 ProjectId = project.Id,
+                RoomId = defaultRoom.Id,
                 Type = "Floor",
                 AssetKey = "procedural/plane",
                 PositionJson = Serialize(new { x = 0, y = 0, z = 0 }),
@@ -93,6 +106,7 @@ namespace home_design_backend.Repositories
             {
                 Id = Guid.NewGuid(),
                 ProjectId = project.Id,
+                RoomId = defaultRoom.Id,
                 Type = "Wall",
                 AssetKey = "procedural/box",
                 PositionJson = Serialize(new { x = -halfW, y = halfH, z = 0 }),
@@ -113,6 +127,7 @@ namespace home_design_backend.Repositories
             {
                 Id = Guid.NewGuid(),
                 ProjectId = project.Id,
+                RoomId = defaultRoom.Id,
                 Type = "Wall",
                 AssetKey = "procedural/box",
                 PositionJson = Serialize(new { x = halfW, y = halfH, z = 0 }),
@@ -133,6 +148,7 @@ namespace home_design_backend.Repositories
             {
                 Id = Guid.NewGuid(),
                 ProjectId = project.Id,
+                RoomId = defaultRoom.Id,
                 Type = "Wall",
                 AssetKey = "procedural/box",
                 PositionJson = Serialize(new { x = 0, y = halfH, z = -halfL }),
@@ -153,6 +169,7 @@ namespace home_design_backend.Repositories
             {
                 Id = Guid.NewGuid(),
                 ProjectId = project.Id,
+                RoomId = defaultRoom.Id,
                 Type = "Wall",
                 AssetKey = "procedural/box",
                 PositionJson = Serialize(new { x = 0, y = halfH, z = halfL }),
@@ -167,6 +184,7 @@ namespace home_design_backend.Repositories
                     color = "#F8F8FF"
                 })
             });
+            return Task.CompletedTask;
         }
         public async Task<List<ProjectObject>> AddRoomAsync(CreateRoomDTO dto, Guid projectId)
         {
@@ -184,14 +202,24 @@ namespace home_design_backend.Repositories
             float wallThickness = 0.1f;
 
             string scaleJson = Serialize(new { x = 1, y = 1, z = 1 });
-
+            var newRoom = new Room
+            {
+                Id = Guid.NewGuid(),
+                ProjectId = project.Id,
+                Name = null,
+                OffsetX = 0,
+                OffsetY = 0,
+                OffsetZ = 0
+            };
+            
             var newObjects = new List<ProjectObject>();
 
             // Floor
             newObjects.Add(new ProjectObject
             {
                 Id = Guid.NewGuid(),
-                ProjectId = projectId, // Use projectId directly
+                ProjectId = projectId,
+                RoomId = newRoom.Id,
                 Type = "Floor",
                 AssetKey = "procedural/plane",
                 PositionJson = Serialize(new { x = dto.X, y = 0, z = dto.Z }),
@@ -208,7 +236,7 @@ namespace home_design_backend.Repositories
             });
 
             // Walls
-            newObjects.AddRange(CreateWalls(dto, projectId, halfW, halfL, halfH, wallThickness, scaleJson));
+            newObjects.AddRange(CreateWalls(dto, projectId, halfW, halfL, halfH, wallThickness, scaleJson, newRoom.Id));
 
             // Add objects directly to DbContext instead of through navigation property
             await _dbContext.ProjectObjects.AddRangeAsync(newObjects);
@@ -219,7 +247,7 @@ namespace home_design_backend.Repositories
             return newObjects;
         }
 
-        private List<ProjectObject> CreateWalls(CreateRoomDTO dto, Guid projectId, float halfW, float halfL, float halfH, float wallThickness, string scaleJson)
+        private List<ProjectObject> CreateWalls(CreateRoomDTO dto, Guid projectId, float halfW, float halfL, float halfH, float wallThickness, string scaleJson, Guid roomid)
         {
             return new List<ProjectObject>
             {
@@ -227,6 +255,7 @@ namespace home_design_backend.Repositories
                 new ProjectObject {
                     Id = Guid.NewGuid(),
                     ProjectId = projectId,
+                    RoomId = roomid,
                     Type = "Wall",
                     AssetKey = "procedural/box",
                     PositionJson = Serialize(new { x = dto.X - halfW, y = halfH, z = dto.Z }),
@@ -244,6 +273,7 @@ namespace home_design_backend.Repositories
                 new ProjectObject {
                     Id = Guid.NewGuid(),
                     ProjectId = projectId,
+                    RoomId = roomid,
                     Type = "Wall",
                     AssetKey = "procedural/box",
                     PositionJson = Serialize(new { x = dto.X + halfW, y = halfH, z = dto.Z }),
@@ -261,6 +291,7 @@ namespace home_design_backend.Repositories
                 new ProjectObject {
                     Id = Guid.NewGuid(),
                     ProjectId = projectId,
+                    RoomId = roomid,
                     Type = "Wall",
                     AssetKey = "procedural/box",
                     PositionJson = Serialize(new { x = dto.X, y = halfH, z = dto.Z - halfL }),
@@ -278,6 +309,7 @@ namespace home_design_backend.Repositories
                 new ProjectObject {
                     Id = Guid.NewGuid(),
                     ProjectId = projectId,
+                    RoomId = roomid,
                     Type = "Wall",
                     AssetKey = "procedural/box",
                     PositionJson = Serialize(new { x = dto.X, y = halfH, z = dto.Z + halfL }),

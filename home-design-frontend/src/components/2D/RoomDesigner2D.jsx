@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { closeRoomDesigner2D } from "../../store/slices/uiSlice";
+import { closeAddRoom2D } from "../../store/slices/uiSlice";
 import { addRoom } from "../../store/slices/projectSlice";
 import { fetchObjects } from "../../store/slices/objectSlice";
 import { doRoomsOverlap, calculateValidZones } from "../../utils/roomCalculations";
@@ -832,7 +832,7 @@ export default function RoomDesigner2D() {
                     <Button
                         danger
                         block
-                        onClick={() => dispatch(closeRoomDesigner2D())}
+                        onClick={() => dispatch(closeAddRoom2D())}
                     >
                         ✖ Close
                     </Button>

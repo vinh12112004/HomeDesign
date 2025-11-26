@@ -6,7 +6,8 @@ const initialState = {
     selectedMesh: null,
     showObjectEditor: false,
     showTranformControls: false,
-    showRoomDesigner2D: false,
+    showAddRoom2D: false,
+    showMoveRoom2D: false,
     transformMode: "translate",
 };
 
@@ -46,11 +47,17 @@ const uiSlice = createSlice({
             state.showTranformControls = false;
             state.selectedMesh = null;
         },
-        openRoomDesigner2D: (state) => {
-            state.showRoomDesigner2D = true;
+        openAddRoom2D: (state) => {
+            state.showAddRoom2D = true;
         },
-        closeRoomDesigner2D: (state) => {
-            state.showRoomDesigner2D = false;
+        closeAddRoom2D: (state) => {
+            state.showAddRoom2D = false;
+        },
+        openMoveRoom2D: (state) => {
+            state.showMoveRoom2D = true;
+        },
+        closeMoveRoom2D: (state) => {
+            state.showMoveRoom2D = false;
         },
     },
 });
@@ -65,7 +72,9 @@ export const {
     openTransformControls,
     closeTransformControls,
     clearSelectedMesh,
-    openRoomDesigner2D,
-    closeRoomDesigner2D,
+    openAddRoom2D,
+    closeAddRoom2D,
+    openMoveRoom2D,
+    closeMoveRoom2D,
 } = uiSlice.actions;
 export default uiSlice.reducer;

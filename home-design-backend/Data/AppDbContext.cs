@@ -10,5 +10,6 @@ namespace home_design_backend.Data
 
         public DbSet<Project> Projects { get; set; }
         public DbSet<ProjectObject> ProjectObjects { get; set; }
+        public DbSet<Room> Rooms { get; set; }
     }
 }

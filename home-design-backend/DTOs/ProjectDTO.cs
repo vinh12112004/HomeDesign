@@ -29,4 +29,9 @@ namespace home_design_backend.DTOs
         public float Length { get; set; } // Chiều dài phòng
         public float Height { get; set; } = 2.5f; // Chiều cao mặc định
     }
+    public class MoveRoomDTO
+    {
+        public float newOffsetX { get; set; }
+        public float newOffsetZ { get; set; }
+    }
 }

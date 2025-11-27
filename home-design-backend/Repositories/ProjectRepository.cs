@@ -188,9 +188,7 @@ namespace home_design_backend.Repositories
         }
         public async Task<List<ProjectObject>> AddRoomAsync(CreateRoomDTO dto, Guid projectId)
         {
-            // SOLUTION 1: Use AsNoTracking to avoid concurrency check
             var project = await _dbContext.Projects
-                .AsNoTracking() // This prevents concurrency check
                 .Include(p => p.Objects)
                 .FirstOrDefaultAsync(p => p.Id == projectId);
 
@@ -207,11 +205,11 @@ namespace home_design_backend.Repositories
                 Id = Guid.NewGuid(),
                 ProjectId = project.Id,
                 Name = null,
-                OffsetX = 0,
+                OffsetX = dto.X,
                 OffsetY = 0,
-                OffsetZ = 0
+                OffsetZ = dto.Z
             };
-            
+            _dbContext.Rooms.Add(newRoom);
             var newObjects = new List<ProjectObject>();
 
             // Floor
@@ -245,6 +243,42 @@ namespace home_design_backend.Repositories
             await _dbContext.SaveChangesAsync();
 
             return newObjects;
+        }
+
+        public async Task<bool> MoveRoomAsync(Guid roomId, MoveRoomDTO moveRoomDto)
+        {
+            // Lấy room
+            var room = await _dbContext.Rooms.FirstOrDefaultAsync(r => r.Id == roomId);
+            if (room == null) return false;
+
+            float deltaX = moveRoomDto.newOffsetX - room.OffsetX;
+            float deltaZ = moveRoomDto.newOffsetZ - room.OffsetZ;
+
+            // Cập nhật offset của room
+            room.OffsetX = moveRoomDto.newOffsetX;
+            room.OffsetZ = moveRoomDto.newOffsetZ;
+
+            // Lấy các project object trong room
+            var objects = await _dbContext.ProjectObjects
+                .Where(o => o.RoomId == roomId)
+                .ToListAsync();
+
+            foreach (var obj in objects)
+            {
+                // Deserialize position hiện tại
+                var position = JsonSerializer.Deserialize<PositionDTO>(obj.PositionJson);
+                if (position == null) continue;
+
+                // Trừ đi delta offset
+                position.x += deltaX;
+                position.z += deltaZ;
+
+                // Serialize lại
+                obj.PositionJson = JsonSerializer.Serialize(position);
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
 
         private List<ProjectObject> CreateWalls(CreateRoomDTO dto, Guid projectId, float halfW, float halfL, float halfH, float wallThickness, string scaleJson, Guid roomid)

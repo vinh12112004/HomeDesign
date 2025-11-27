@@ -110,5 +110,23 @@ namespace HomeDesign.Backend.Controllers
                 });
             }
         }
+        [HttpPost("rooms/{roomId}/move")]
+        public async Task<IActionResult> MoveRoom(Guid roomId, MoveRoomDTO moveRoomDto)
+        {
+            try
+            {
+                var result = await _projectRepository.MoveRoomAsync(roomId, moveRoomDto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = "Lỗi khi di chuyển phòng",
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
     }
 }

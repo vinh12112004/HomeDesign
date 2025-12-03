@@ -6,6 +6,7 @@ import ObjScene from "./components/ObjScene";
 import { ConfigProvider, message } from "antd";
 import "antd/dist/reset.css";
 import RoomDesigner2D from "./components/2D/RoomDesigner2D";
+import MoveRoom2D from "./components/2D/MoveRoom2D";
 // Cấu hình message global
 message.config({
     top: 100,
@@ -22,6 +23,7 @@ function App() {
                     <Route path="/canvas" element={<CanvasPage />} />
                     <Route path="/test" element={<ObjScene />} />
                     <Route path="/test2d" element={<RoomDesigner2D />} />
+                    <Route path="/testmove" element={<MoveRoom2D />} />
                     <Route path="*" element={<div>404 Not Found</div>} />
                 </Routes>
             </Router>

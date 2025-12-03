@@ -17,6 +17,10 @@ const projectApi = {
         const url = `/Project/${projectId}/rooms`;
         return axiosClient.post(url, data);
     },
+    moveRoom: (roomId, data) => {
+        const url = `/Project/rooms/${roomId}/move`;
+        return axiosClient.post(url, data);
+    },
 };
 
 export default projectApi;

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Layout, Card, Button, Space, Typography } from "antd";
+import { useSelector, useDispatch } from "react-redux"; // Đã import
+import { Layout, Card, Button, Space, Typography, message } from "antd";
 import { usePanZoom } from "../../hooks/usePanZoom";
 import CanvasRenderer from "./CanvasRenderer.jsx";
 import {
@@ -9,45 +10,28 @@ import {
 import {
     findZoneContainingPoint,
     screenToWorld,
-    constrainToZone, // <--- THÊM IMPORT NÀY
+    constrainToZone,
 } from "../../utils/roomHelpers";
+import { moveRoom } from "../../store/slices/projectSlice";
+import { fetchObjects } from "../../store/slices/objectSlice";
+import { closeMoveRoom2D } from "../../store/slices/uiSlice.js";
 
 const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
 
-// Mock data từ file JSON
-const mockObjects = [
-    {
-        id: "76939430-9168-4d9f-b81f-016e3e1a04e0",
-        type: "Wall",
-        positionJson: '{"x":2.5,"y":2.5,"z":0}',
-        metadataJson:
-            '{"geometry":"box","sizeX":0.1,"sizeY":5,"sizeZ":5,"color":"#F8F8FF"}',
-        roomId: "35bb7159-4bb6-43f4-8f5b-477a3cab316d",
-    },
-    {
-        id: "27b41fd6-e2ba-405e-99e0-1fda6f355150",
-        type: "Floor",
-        positionJson: '{"x":4.5,"y":0,"z":-4}',
-        metadataJson:
-            '{"geometry":"plane","width":4,"length":5,"texture":"/textures/floor.png","color":"#F8F8FF"}',
-        roomId: "36ecc9fc-abad-48c1-b565-e653e7e0e759",
-    },
-    {
-        id: "cea03cfd-282c-4765-beba-9c2809893967",
-        type: "Floor",
-        positionJson: '{"x":0,"y":0,"z":0}',
-        metadataJson:
-            '{"geometry":"plane","width":5,"length":5,"texture":"/textures/floor.png","color":"#F8F8FF"}',
-        roomId: "35bb7159-4bb6-43f4-8f5b-477a3cab316d",
-    },
-];
-
 export default function MoveRoom2D() {
+    const dispatch = useDispatch();
     const canvasRef = useRef(null);
 
+    // --- LẤY DỮ LIỆU TỪ REDUX ---
+    const objects = useSelector((state) => state.objects.objects);
+    const currentProject = useSelector(
+        (state) => state.projects.currentProject
+    );
+    const isMovingRoom = useSelector((state) => state.projects.isMovingRoom);
+
     // Core settings
-    const [scale, setScale] = useState(80); // 1 meter = 80 pixels
+    const [scale, setScale] = useState(80);
     const [offsetX, setOffsetX] = useState(600);
     const [offsetY, setOffsetY] = useState(400);
 
@@ -65,7 +49,6 @@ export default function MoveRoom2D() {
     const [validZones, setValidZones] = useState([]);
     const [showZones, setShowZones] = useState(true);
 
-    // Use the custom usePanZoom hook
     const {
         isPanning,
         isSpacePressed,
@@ -83,26 +66,29 @@ export default function MoveRoom2D() {
         setOffsetY
     );
 
-    // Load rooms from mock data
+    // --- CẬP NHẬT: Load rooms từ Redux objects thay vì mockObjects ---
     useEffect(() => {
-        const floorObjects = mockObjects
-            .filter((obj) => obj.type === "Floor")
-            .map((floor) => {
-                const pos = JSON.parse(floor.positionJson);
-                const meta = JSON.parse(floor.metadataJson);
-                return {
-                    id: floor.id,
-                    roomId: floor.roomId,
-                    x: pos.x,
-                    z: pos.z,
-                    width: meta.width,
-                    length: meta.length,
-                    originalX: pos.x,
-                    originalZ: pos.z,
-                };
-            });
-        setRooms(floorObjects);
-    }, []);
+        if (objects && objects.length > 0) {
+            const floorObjects = objects
+                .filter((obj) => obj.type === "Floor")
+                .map((floor) => {
+                    const pos = JSON.parse(floor.positionJson);
+                    const meta = JSON.parse(floor.metadataJson);
+                    return {
+                        id: floor.id, // ID của object Floor
+                        roomId: floor.roomId, // ID của Room (quan trọng để gọi API move)
+                        x: pos.x,
+                        z: pos.z,
+                        width: meta.width,
+                        length: meta.length,
+                        // Lưu vị trí gốc để so sánh có thay đổi không trước khi save
+                        originalX: pos.x,
+                        originalZ: pos.z,
+                    };
+                });
+            setRooms(floorObjects);
+        }
+    }, [objects]); // Chạy lại khi objects trong Redux thay đổi (VD: sau khi fetchObjects)
 
     // Calculate valid zones when dragging
     useEffect(() => {
@@ -110,11 +96,10 @@ export default function MoveRoom2D() {
             const currentRoom = rooms.find((r) => r.id === selectedRoom);
             if (!currentRoom) return;
 
-            // Loại trừ phòng đang di chuyển khỏi danh sách phòng để tính toán vùng hợp lệ
             const otherRooms = rooms.filter((r) => r.id !== selectedRoom);
             const zones = calculateValidZones(
                 otherRooms,
-                [], // Không có addedRooms
+                [],
                 currentRoom.width,
                 currentRoom.length
             );
@@ -126,10 +111,8 @@ export default function MoveRoom2D() {
         }
     }, [isDragging, selectedRoom, rooms]);
 
-    // **Tái sử dụng findRoomAtPoint**
     const findRoomAtPoint = (worldX, worldZ) => {
         return rooms.find((room) => {
-            // Giả định tâm phòng là (room.x, room.z)
             const halfWidth = room.width / 2;
             const halfLength = room.length / 2;
             return (
@@ -175,7 +158,6 @@ export default function MoveRoom2D() {
     const handleMouseMove = (e) => {
         const canvas = canvasRef.current;
 
-        // Panning
         if (isPanning) {
             panZoomMouseMove(e);
             return;
@@ -194,7 +176,6 @@ export default function MoveRoom2D() {
             const currentRoom = rooms.find((r) => r.id === selectedRoom);
             if (!currentRoom) return;
 
-            // 1. Tìm zone chứa điểm
             const zone = findZoneContainingPoint(
                 validZones,
                 worldPos.x,
@@ -202,8 +183,6 @@ export default function MoveRoom2D() {
             );
 
             if (zone) {
-                // 2. SỬ DỤNG constrainToZone ĐỂ ĐỒNG BỘ LOGIC VỚI ROOMDESIGNER
-                // Hàm này sẽ tự xử lý logic biên (side), minX, maxX... một cách chính xác
                 const constrainedPos = constrainToZone(
                     zone,
                     worldPos.x,
@@ -219,7 +198,6 @@ export default function MoveRoom2D() {
                     length: currentRoom.length,
                 };
 
-                // 3. Check overlap
                 const otherRooms = rooms.filter((r) => r.id !== selectedRoom);
                 const wouldOverlap = otherRooms.some((r) =>
                     doRoomsOverlap(previewRoom, r)
@@ -240,7 +218,6 @@ export default function MoveRoom2D() {
                 }
             }
         } else {
-            // Update cursor
             const hoveredRoom = findRoomAtPoint(worldPos.x, worldPos.z);
             if (isSpacePressed) canvas.style.cursor = "grab";
             else if (hoveredRoom) canvas.style.cursor = "pointer";
@@ -273,27 +250,54 @@ export default function MoveRoom2D() {
         }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!selectedRoom) {
-            console.log("Chưa chọn phòng nào");
             setStatus("❌ Vui lòng chọn một phòng trước khi lưu");
             return;
         }
 
         const room = rooms.find((r) => r.id === selectedRoom);
         if (room) {
-            console.log("Room ID:", room.roomId);
-            console.log("Object ID:", room.id);
-            console.log("New Position:", { x: room.x, z: room.z });
-            console.log("Original Position:", {
-                x: room.originalX,
-                z: room.originalZ,
-            });
-            setStatus(`✅ Đã log thông tin phòng (Room ID: ${room.roomId})`);
+            if (room.x === room.originalX && room.z === room.originalZ) {
+                message.info("Phòng chưa thay đổi vị trí");
+                return;
+            }
+
+            try {
+                // Gọi API Move Room
+                await dispatch(
+                    moveRoom({
+                        roomId: room.roomId,
+                        offsetData: {
+                            newOffsetX: room.x,
+                            newOffsetZ: room.z,
+                        },
+                    })
+                ).unwrap();
+
+                message.success("✅ Đã cập nhật vị trí phòng thành công!");
+
+                // Load lại dữ liệu mới nhất từ server để đồng bộ
+                if (currentProject?.id) {
+                    dispatch(fetchObjects(currentProject.id));
+                }
+
+                setStatus(
+                    `✅ Đã lưu vị trí mới cho phòng: ${room.roomId} tại (${room.x}, ${room.z})`
+                );
+            } catch (error) {
+                console.error("Move failed:", error);
+                message.error(
+                    "❌ Lỗi khi lưu vị trí: " +
+                        (error.message || "Unknown error")
+                );
+                setStatus("❌ Lưu thất bại");
+            }
         }
     };
 
     const handleReset = () => {
+        // Reset về vị trí original (lấy từ objects ban đầu)
         setRooms((prevRooms) =>
             prevRooms.map((room) => ({
                 ...room,
@@ -355,15 +359,23 @@ export default function MoveRoom2D() {
                         type="primary"
                         block
                         onClick={handleSave}
-                        disabled={!selectedRoom}
+                        disabled={!selectedRoom || isMovingRoom}
+                        loading={isMovingRoom}
                     >
-                        💾 Save (Log Room ID)
+                        💾 Lưu Vị Trí Mới
                     </Button>
                     <Button block onClick={handleReset}>
                         🔄 Reset Vị Trí
                     </Button>
                     <Button block onClick={handleResetView}>
                         🔍 Reset View
+                    </Button>
+                    <Button
+                        danger
+                        block
+                        onClick={() => dispatch(closeMoveRoom2D())}
+                    >
+                        ✖ Close
                     </Button>
                 </Space>
             </Sider>
@@ -397,7 +409,6 @@ export default function MoveRoom2D() {
                         }}
                     />
 
-                    {/* Reuse CanvasRenderer component */}
                     <CanvasRenderer
                         canvasRef={canvasRef}
                         existingRooms={rooms}

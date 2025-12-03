@@ -8,12 +8,12 @@ import SideMenu from "../components/canvas/SideMenu";
 import ViewModeToggle from "../components/canvas/ViewModeToggle";
 import ObjectEditor from "../components/canvas/ObjectEditor/ObjectEditor";
 import RoomDesigner2D from "../components/2D/RoomDesigner2D";
-
+import MoveRoom2D from "../components/2D/MoveRoom2D";
 export default function CanvasPage() {
     const controlsRef = useRef();
 
     const { currentProject } = useSelector((state) => state.projects);
-    const { showAddRoom2D } = useSelector((state) => state.ui);
+    const { showAddRoom2D, showMoveRoom2D } = useSelector((state) => state.ui);
 
     if (!currentProject) {
         return (
@@ -44,6 +44,8 @@ export default function CanvasPage() {
 
             {showAddRoom2D ? (
                 <RoomDesigner2D />
+            ) : showMoveRoom2D ? (
+                <MoveRoom2D />
             ) : (
                 <>
                     <div style={{ flexShrink: 0 }}>

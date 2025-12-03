@@ -32,7 +32,13 @@ export const addRoom = createAsyncThunk(
         return response;
     }
 );
-
+export const moveRoom = createAsyncThunk(
+    "projects/moveRoom",
+    async ({ roomId, offsetData }) => {
+        const response = await projectApi.moveRoom(roomId, offsetData);
+        return response;
+    }
+);
 const initialState = {
     projects: [],
     currentProject: null,
@@ -40,6 +46,7 @@ const initialState = {
     isCreating: false,
     isDeleting: false,
     isAddingRoom: false,
+    isMovingRoom: false,
     error: null,
 };
 
@@ -107,6 +114,18 @@ const projectSlice = createSlice({
             })
             .addCase(addRoom.rejected, (state, action) => {
                 state.isAddingRoom = false;
+                state.error = action.error.message;
+            })
+            // MOVE ROOM
+            .addCase(moveRoom.pending, (state) => {
+                state.isMovingRoom = true;
+                state.error = null;
+            })
+            .addCase(moveRoom.fulfilled, (state, action) => {
+                state.isMovingRoom = false;
+            })
+            .addCase(moveRoom.rejected, (state, action) => {
+                state.isMovingRoom = false;
                 state.error = action.error.message;
             });
     },

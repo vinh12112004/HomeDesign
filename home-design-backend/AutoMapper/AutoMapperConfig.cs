@@ -16,9 +16,16 @@ namespace home_design_backend.AutoMapper
 
             CreateMap<CreateProjectDTO, Project>();
             CreateMap<Project, CreateProjectDTO>();
-
+        
 
             CreateMap<UpdateProjectObjectDto, ProjectObject>();
+            
+            CreateMap<Room, RoomDTO.RoomDto>().ReverseMap();
+            CreateMap<RoomDTO.UpdateRoomDto, Room>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<RoomDTO.CreateRoomDTO, Room>()
+                .ForMember(dest => dest.OffsetX, opt => opt.MapFrom(src => src.X))
+                .ForMember(dest => dest.OffsetZ, opt => opt.MapFrom(src => src.Z));
         }
     }
 }

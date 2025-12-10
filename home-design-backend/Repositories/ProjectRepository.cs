@@ -186,7 +186,7 @@ namespace home_design_backend.Repositories
             });
             return Task.CompletedTask;
         }
-        public async Task<List<ProjectObject>> AddRoomAsync(CreateRoomDTO dto, Guid projectId)
+        public async Task<List<ProjectObject>> AddRoomAsync(RoomDTO.CreateRoomDTO dto, Guid projectId)
         {
             var project = await _dbContext.Projects
                 .Include(p => p.Objects)
@@ -204,7 +204,7 @@ namespace home_design_backend.Repositories
             {
                 Id = Guid.NewGuid(),
                 ProjectId = project.Id,
-                Name = null,
+                Name = dto.Name,
                 OffsetX = dto.X,
                 OffsetY = 0,
                 OffsetZ = dto.Z
@@ -245,7 +245,7 @@ namespace home_design_backend.Repositories
             return newObjects;
         }
 
-        public async Task<bool> MoveRoomAsync(Guid roomId, MoveRoomDTO moveRoomDto)
+        public async Task<bool> MoveRoomAsync(Guid roomId, RoomDTO.MoveRoomDTO moveRoomDto)
         {
             // Lấy room
             var room = await _dbContext.Rooms.FirstOrDefaultAsync(r => r.Id == roomId);
@@ -281,7 +281,7 @@ namespace home_design_backend.Repositories
             return true;
         }
 
-        private List<ProjectObject> CreateWalls(CreateRoomDTO dto, Guid projectId, float halfW, float halfL, float halfH, float wallThickness, string scaleJson, Guid roomid)
+        private List<ProjectObject> CreateWalls(RoomDTO.CreateRoomDTO dto, Guid projectId, float halfW, float halfL, float halfH, float wallThickness, string scaleJson, Guid roomid)
         {
             return new List<ProjectObject>
             {

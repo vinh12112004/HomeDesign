@@ -78,7 +78,7 @@ namespace HomeDesign.Backend.Controllers
         }
 
         [HttpPost("{projectId}/rooms")]
-        public async Task<IActionResult> AddRoom(Guid projectId, [FromBody] CreateRoomDTO dto)
+        public async Task<IActionResult> AddRoom(Guid projectId, [FromBody] RoomDTO.CreateRoomDTO dto)
         {
             try
             {
@@ -111,7 +111,7 @@ namespace HomeDesign.Backend.Controllers
             }
         }
         [HttpPost("rooms/{roomId}/move")]
-        public async Task<IActionResult> MoveRoom(Guid roomId, MoveRoomDTO moveRoomDto)
+        public async Task<IActionResult> MoveRoom(Guid roomId, RoomDTO.MoveRoomDTO moveRoomDto)
         {
             try
             {

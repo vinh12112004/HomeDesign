@@ -10,6 +10,7 @@ import {
     Typography,
     Divider,
     Spin,
+    Input,
 } from "antd";
 
 const { Sider } = Layout;
@@ -29,6 +30,8 @@ export default function SideBarMoveRoom2D({
     handleResetView,
     handleAddRoom,
     handleSave,
+    roomName,
+    setRoomName,
 }) {
     const dispatch = useDispatch();
 
@@ -86,6 +89,13 @@ export default function SideBarMoveRoom2D({
             )}
 
             <Card size="small" style={{ marginBottom: 16 }}>
+                <Text strong>Tên phòng:</Text>
+                <Input
+                    placeholder="Ví dụ: Phòng Khách, Bếp..."
+                    value={roomName}
+                    onChange={(e) => setRoomName(e.target.value)}
+                    style={{ width: "100%", marginTop: 8, marginBottom: 16 }}
+                />
                 <Text strong>Chiều rộng phòng mới (m):</Text>
                 <InputNumber
                     value={roomWidth}
@@ -151,10 +161,7 @@ export default function SideBarMoveRoom2D({
                     >
                         {isAddingRoom ? (
                             <>
-                                <Spin
-                                    size="small"
-                                    style={{ marginRight: 8 }}
-                                />
+                                <Spin size="small" style={{ marginRight: 8 }} />
                                 Đang lưu...
                             </>
                         ) : (
@@ -180,11 +187,7 @@ export default function SideBarMoveRoom2D({
             )}
 
             <div style={{ marginTop: 16 }}>
-                <Button
-                    danger
-                    block
-                    onClick={() => dispatch(closeAddRoom2D())}
-                >
+                <Button danger block onClick={() => dispatch(closeAddRoom2D())}>
                     ✖ Close
                 </Button>
             </div>

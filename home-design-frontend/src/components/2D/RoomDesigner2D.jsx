@@ -34,6 +34,8 @@ export default function RoomDesigner2D() {
     const [roomWidth, setRoomWidth] = useState(4);
     const [roomLength, setRoomLength] = useState(5);
 
+    const [roomName, setRoomName] = useState("Phòng Mới");
+
     // ui state
     const [newRoomCenter, setNewRoomCenter] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -80,6 +82,7 @@ export default function RoomDesigner2D() {
                 width: meta.width,
                 length: meta.length,
                 id: floor.id,
+                name: meta.name || `Room ${floor.id.substring(0, 4)}`,
             };
         });
 
@@ -274,6 +277,7 @@ export default function RoomDesigner2D() {
                     z: newRoomCenter.z,
                     width: roomWidth,
                     length: roomLength,
+                    name: roomName || `Room ${addedRooms.length + 1}`,
                     id: `new-room-${Date.now()}`,
                 },
             ]);
@@ -328,6 +332,7 @@ export default function RoomDesigner2D() {
                     width: room.width,
                     length: room.length,
                     height: projectHeight,
+                    name: room.name || `Room ${room.id.substring(0, 4)}`,
                 };
 
                 return dispatch(
@@ -356,6 +361,8 @@ export default function RoomDesigner2D() {
     return (
         <Layout style={{ height: "100vh", background: "#f0f2f5" }}>
             <SideBarMoveRoom2D
+                roomName={roomName}
+                setRoomName={setRoomName}
                 roomWidth={roomWidth}
                 setRoomWidth={setRoomWidth}
                 roomLength={roomLength}

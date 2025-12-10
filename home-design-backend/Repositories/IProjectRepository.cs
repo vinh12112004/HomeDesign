@@ -10,7 +10,7 @@ namespace home_design_backend.Repositories
         Task<List<Project>> GetAllAsync();
         Task<bool> UpdateAsync(Guid id, ProjectDTO room);
         Task<bool> DeleteAsync(Guid id);
-        Task<List<ProjectObject>> AddRoomAsync(CreateRoomDTO dto, Guid projectId);
-        Task<bool> MoveRoomAsync(Guid roomId, MoveRoomDTO moveRoomDto);
+        Task<List<ProjectObject>> AddRoomAsync(RoomDTO.CreateRoomDTO dto, Guid projectId);
+        Task<bool> MoveRoomAsync(Guid roomId, RoomDTO.MoveRoomDTO moveRoomDto);
     }
 }

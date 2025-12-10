@@ -1,5 +1,26 @@
 import React, { useState } from "react";
-import { Button, Divider, Modal, Form, InputNumber, message } from "antd";
+import {
+    Button,
+    Divider,
+    Modal,
+    Form,
+    InputNumber,
+    message,
+    Tooltip,
+    Space,
+    theme,
+} from "antd";
+import {
+    DragOutlined,
+    RotateRightOutlined,
+    PlusOutlined,
+    GatewayOutlined, // Dùng cho Break Wall (nhìn giống cái cổng/lỗ)
+    SelectOutlined,
+    SettingOutlined,
+    AppstoreAddOutlined,
+    ExpandOutlined,
+    CloseOutlined,
+} from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import FurniturePickerModal from "./FurniturePickerModal/FurniturePickerModal";
 import {
@@ -16,8 +37,10 @@ import {
     openAddRoom2D,
     openMoveRoom2D,
 } from "../../store/slices/uiSlice";
+
 const SideMenu = () => {
     const dispatch = useDispatch();
+    const { token } = theme.useToken(); // Sử dụng theme token để lấy màu chuẩn
     const { currentProject } = useSelector((s) => s.projects);
     const { selectedMesh } = useSelector((s) => s.ui);
     const { objects } = useSelector((s) => s.objects);
@@ -28,7 +51,6 @@ const SideMenu = () => {
     const [isRotating, setIsRotating] = useState(false);
     const [form] = Form.useForm();
 
-    // Kiểm tra xem object được chọn có phải là Wall không
     const selectedObject = objects.find((obj) => obj.id === selectedMesh);
     const isWallSelected = selectedObject?.type === "Wall";
 
@@ -36,6 +58,7 @@ const SideMenu = () => {
         if (selectedMesh && isMoving === false) {
             dispatch(openTransformControls("translate"));
             setIsMoving(true);
+            setIsRotating(false); // Tắt rotate nếu đang bật
         } else {
             dispatch(closeTransformControls());
             setIsMoving(false);
@@ -46,6 +69,7 @@ const SideMenu = () => {
         if (selectedMesh && isRotating === false) {
             dispatch(openTransformControls("rotate"));
             setIsRotating(true);
+            setIsMoving(false); // Tắt move nếu đang bật
         } else {
             dispatch(closeTransformControls());
             setIsRotating(false);
@@ -61,6 +85,7 @@ const SideMenu = () => {
     const handleAddRoom = () => {
         dispatch(openAddRoom2D());
     };
+
     const handlePropertiesClick = () => {
         if (selectedMesh) {
             dispatch(openObjectEditor());
@@ -72,7 +97,6 @@ const SideMenu = () => {
             message.warning("Please select a wall first");
             return;
         }
-        // Set giá trị mặc định cho form
         form.setFieldsValue({
             width: 1,
             height: 2,
@@ -87,7 +111,6 @@ const SideMenu = () => {
     const handleBreakWallSubmit = async () => {
         try {
             const values = await form.validateFields();
-
             const holeData = {
                 width: values.width,
                 height: values.height,
@@ -98,8 +121,6 @@ const SideMenu = () => {
                     z: values.centerZ,
                 },
             };
-
-            // Sử dụng Redux action thay vì gọi API trực tiếp
             await dispatch(
                 createHole({
                     objectId: selectedMesh,
@@ -107,22 +128,15 @@ const SideMenu = () => {
                     projectId: currentProject.id,
                 })
             ).unwrap();
-
             message.success("Hole created successfully");
             setOpenBreakWall(false);
         } catch (error) {
-            if (error.errorFields) {
-                message.error("Please fill in all required fields");
-            } else {
-                console.error("Create hole failed:", error);
-                message.error("Failed to create hole");
-            }
+            message.error("Failed to create hole");
         }
     };
 
     const handleSelectFurniture = async (modelData) => {
         if (!currentProject || !modelData) return;
-
         let parsed;
         try {
             parsed = JSON.parse(modelData);
@@ -136,30 +150,22 @@ const SideMenu = () => {
             positionJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
             rotationJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
             scaleJson: JSON.stringify({ x: 0.01, y: 0.01, z: 0.01 }),
-            metadataJson: JSON.stringify({
-                geometry: "model",
-                ...parsed,
-            }),
+            metadataJson: JSON.stringify({ geometry: "model", ...parsed }),
         };
 
         try {
             const created = await dispatch(
-                createObject({
-                    projectId: currentProject.id,
-                    objectData,
-                })
+                createObject({ projectId: currentProject.id, objectData })
             ).unwrap();
-
-            if (created?.id) {
-                dispatch(setSelectedMesh(created.id));
-            }
+            if (created?.id) dispatch(setSelectedMesh(created.id));
         } catch (e) {
-            console.error("Create furniture failed:", e?.message || e);
+            console.error(e);
         } finally {
             dispatch(fetchObjects(currentProject.id));
         }
     };
 
+    // --- Render ---
     return (
         <>
             <div
@@ -167,64 +173,120 @@ const SideMenu = () => {
                 style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 8,
-                    height: 56,
-                    padding: "0 16px",
-                    background: "#ffffff",
-                    borderBottom: "1px solid #eee",
-                    boxShadow: "0 1px 0 rgba(0,0,0,0.04)",
+                    justifyContent: "space-between", // Căn đều 2 bên
+                    height: 64, // Tăng chiều cao một chút cho thoáng
+                    padding: "0 24px",
+                    background: "rgba(255, 255, 255, 0.95)", // Hiệu ứng kính nhẹ
+                    backdropFilter: "blur(10px)",
+                    borderBottom: "1px solid #f0f0f0",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
                     zIndex: 50,
+                    position: "relative",
                 }}
             >
-                <Button type="default" onClick={() => setOpenPicker(true)}>
-                    Add
-                </Button>
-                <Button
-                    type={isMoving ? "primary" : "default"}
-                    onClick={handleMoveClick}
+                {/* Left Section: Tools */}
+                <Space
+                    split={<Divider type="vertical" style={{ height: 24 }} />}
                 >
-                    Move
-                </Button>
-                <Button
-                    type={isRotating ? "primary" : "default"}
-                    onClick={handleRotateClick}
-                >
-                    Rotate
-                </Button>
-                <Button
-                    type="default"
-                    onClick={handleBreakWallClick}
-                    disabled={!isWallSelected}
-                >
-                    Break Wall
-                </Button>
-                <Button
-                    type="default"
-                    onClick={handleDeselectClick}
-                    disabled={!selectedMesh}
-                >
-                    Deselect
-                </Button>
-                <Button type="default" onClick={handleAddRoom}>
-                    Add Room
-                </Button>
-                <Button type="default" onClick={() => dispatch(openMoveRoom2D())}>
-                    Move Room
-                </Button>
-                <div style={{ flex: 1 }} />
-                <Divider
-                    type="vertical"
-                    style={{ height: 24, margin: "0 8px" }}
-                />
+                    {/* Group 1: Creation */}
+                    <Space>
+                        <Tooltip title="Add Furniture">
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={() => setOpenPicker(true)}
+                                shape="circle"
+                                size="large"
+                            />
+                        </Tooltip>
+                        <Tooltip title="Add Room (2D)">
+                            <Button
+                                icon={<AppstoreAddOutlined />}
+                                onClick={handleAddRoom}
+                            >
+                                Add Room
+                            </Button>
+                        </Tooltip>
+                        <Tooltip title="Move Room Layout">
+                            <Button
+                                icon={<ExpandOutlined />}
+                                onClick={() => dispatch(openMoveRoom2D())}
+                            />
+                        </Tooltip>
+                    </Space>
 
-                <Button
-                    type="primary"
-                    onClick={handlePropertiesClick}
-                    disabled={!selectedMesh}
-                    style={{ marginLeft: "auto" }}
-                >
-                    Properties
-                </Button>
+                    {/* Group 2: Transformation (Chỉ hiện khi select object) */}
+                    <Space>
+                        <Tooltip title="Move Object">
+                            <Button
+                                type={isMoving ? "primary" : "text"}
+                                icon={<DragOutlined />}
+                                onClick={handleMoveClick}
+                                disabled={!selectedMesh}
+                            />
+                        </Tooltip>
+                        <Tooltip title="Rotate Object">
+                            <Button
+                                type={isRotating ? "primary" : "text"}
+                                icon={<RotateRightOutlined />}
+                                onClick={handleRotateClick}
+                                disabled={!selectedMesh}
+                            />
+                        </Tooltip>
+                    </Space>
+
+                    {/* Group 3: Context Actions */}
+                    <Space>
+                        <Tooltip
+                            title={
+                                isWallSelected
+                                    ? "Break Hole in Wall"
+                                    : "Select a wall to break"
+                            }
+                        >
+                            <Button
+                                type={openBreakWall ? "primary" : "default"}
+                                icon={<GatewayOutlined />}
+                                onClick={handleBreakWallClick}
+                                disabled={!isWallSelected}
+                                danger={isWallSelected} // Làm nổi bật nút này nếu là tường
+                            >
+                                {isWallSelected ? "Break Wall" : "Hole"}
+                            </Button>
+                        </Tooltip>
+                    </Space>
+                </Space>
+
+                {/* Right Section: Properties & System */}
+                <Space split={<Divider type="vertical" />}>
+                    <Tooltip title="Object Properties">
+                        <Button
+                            type="text"
+                            icon={<SettingOutlined spin={!!selectedMesh} />}
+                            onClick={handlePropertiesClick}
+                            disabled={!selectedMesh}
+                            style={{
+                                color: selectedMesh
+                                    ? token.colorPrimary
+                                    : undefined,
+                            }}
+                        >
+                            Properties
+                        </Button>
+                    </Tooltip>
+
+                    <Tooltip title="Deselect All">
+                        <Button
+                            type="text"
+                            danger
+                            icon={<CloseOutlined />}
+                            onClick={handleDeselectClick}
+                            disabled={!selectedMesh}
+                        >
+                            Deselect
+                        </Button>
+                    </Tooltip>
+                </Space>
 
                 <FurniturePickerModal
                     open={openPicker}
@@ -233,16 +295,21 @@ const SideMenu = () => {
                 />
             </div>
 
-            {/* Break Wall Modal */}
+            {/* Break Wall Modal - Giữ nguyên logic form */}
             <Modal
-                title="Create Hole in Wall"
+                title={
+                    <span>
+                        <GatewayOutlined /> Create Hole in Wall
+                    </span>
+                }
                 open={openBreakWall}
                 onOk={handleBreakWallSubmit}
                 onCancel={() => setOpenBreakWall(false)}
                 okText="Create Hole"
-                cancelText="Cancel"
-                width={500}
+                centered
+                width={400}
             >
+                {/* Form giữ nguyên như cũ, chỉ chỉnh lại styling padding nếu cần */}
                 <Form
                     form={form}
                     layout="vertical"
@@ -255,105 +322,65 @@ const SideMenu = () => {
                         centerZ: 0,
                     }}
                 >
-                    <div style={{ marginBottom: 16 }}>
-                        <strong>Hole Dimensions:</strong>
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr 1fr",
+                            gap: 8,
+                        }}
+                    >
+                        <Form.Item
+                            label="Width"
+                            name="width"
+                            rules={[{ required: true }]}
+                        >
+                            <InputNumber style={{ width: "100%" }} step={0.1} />
+                        </Form.Item>
+                        <Form.Item
+                            label="Height"
+                            name="height"
+                            rules={[{ required: true }]}
+                        >
+                            <InputNumber style={{ width: "100%" }} step={0.1} />
+                        </Form.Item>
+                        <Form.Item
+                            label="Depth"
+                            name="depth"
+                            rules={[{ required: true }]}
+                        >
+                            <InputNumber style={{ width: "100%" }} step={0.1} />
+                        </Form.Item>
                     </div>
-                    <Form.Item
-                        label="Width"
-                        name="width"
-                        rules={[
-                            { required: true, message: "Please input width" },
-                        ]}
+                    <Divider plain>Center Position</Divider>
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr 1fr",
+                            gap: 8,
+                        }}
                     >
-                        <InputNumber
-                            style={{ width: "100%" }}
-                            step={0.1}
-                            min={0.1}
-                            placeholder="Width of the hole"
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label="Height"
-                        name="height"
-                        rules={[
-                            { required: true, message: "Please input height" },
-                        ]}
-                    >
-                        <InputNumber
-                            style={{ width: "100%" }}
-                            step={0.1}
-                            min={0.1}
-                            placeholder="Height of the hole"
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label="Depth"
-                        name="depth"
-                        rules={[
-                            { required: true, message: "Please input depth" },
-                        ]}
-                    >
-                        <InputNumber
-                            style={{ width: "100%" }}
-                            step={0.1}
-                            min={0.1}
-                            placeholder="Depth of the hole"
-                        />
-                    </Form.Item>
-
-                    <Divider />
-
-                    <div style={{ marginBottom: 16 }}>
-                        <strong>Hole Center Position:</strong>
+                        <Form.Item
+                            label="X"
+                            name="centerX"
+                            rules={[{ required: true }]}
+                        >
+                            <InputNumber style={{ width: "100%" }} step={0.1} />
+                        </Form.Item>
+                        <Form.Item
+                            label="Y"
+                            name="centerY"
+                            rules={[{ required: true }]}
+                        >
+                            <InputNumber style={{ width: "100%" }} step={0.1} />
+                        </Form.Item>
+                        <Form.Item
+                            label="Z"
+                            name="centerZ"
+                            rules={[{ required: true }]}
+                        >
+                            <InputNumber style={{ width: "100%" }} step={0.1} />
+                        </Form.Item>
                     </div>
-                    <Form.Item
-                        label="Center X"
-                        name="centerX"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input center X",
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                            style={{ width: "100%" }}
-                            step={0.1}
-                            placeholder="X position of hole center"
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label="Center Y"
-                        name="centerY"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input center Y",
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                            style={{ width: "100%" }}
-                            step={0.1}
-                            placeholder="Y position of hole center"
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label="Center Z"
-                        name="centerZ"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input center Z",
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                            style={{ width: "100%" }}
-                            step={0.1}
-                            placeholder="Z position of hole center"
-                        />
-                    </Form.Item>
                 </Form>
             </Modal>
         </>

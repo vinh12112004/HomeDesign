@@ -19,6 +19,7 @@ namespace home_design_backend.Repositories
         public async Task<ProjectDTO> CreateAsync(CreateProjectDTO projectDTO)
         {
             Project project = _mapper.Map<Project>(projectDTO);
+            project.Id = Guid.NewGuid();
             project.Objects ??= new List<ProjectObject>();
             AddDefaultObjectsInline(project);
             await _dbContext.AddAsync(project);

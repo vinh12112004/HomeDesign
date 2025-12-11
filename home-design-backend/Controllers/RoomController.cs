@@ -26,6 +26,13 @@ namespace home_design_backend.Controllers
             var rooms = await _roomRepo.GetAsync(projectId);
             return Ok(rooms);
         }
+        // Get
+        [HttpGet("project")]
+        public async Task<IActionResult> GetAll(Guid projectId)
+        {
+            var rooms = await _roomRepo.GetAllAsync();
+            return Ok(rooms);
+        }
 
         // POST: api/rooms/project/{projectId}
         // Tạo phòng mới

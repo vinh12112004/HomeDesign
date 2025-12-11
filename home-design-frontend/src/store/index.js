@@ -7,6 +7,7 @@ import uiSlice from "./slices/uiSlice";
 import assetSlice from "./slices/assetSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { combineReducers } from "redux";
+import roomSlice from "./slices/roomSlice";
 
 // Gộp reducer lại
 const rootReducer = combineReducers({
@@ -14,13 +15,14 @@ const rootReducer = combineReducers({
     objects: objectSlice,
     ui: uiSlice,
     assets: assetSlice,
+    rooms: roomSlice,
 });
 
 // Cấu hình persist
 const persistConfig = {
     key: "root",
     storage,
-    whitelist: ["projects", "objects", "assets"],
+    whitelist: ["projects", "objects", "assets", "rooms"],
     // chỉ lưu 3 slice này, ui thường chứa state tạm thời (hover, select) nên bỏ qua
 };
 

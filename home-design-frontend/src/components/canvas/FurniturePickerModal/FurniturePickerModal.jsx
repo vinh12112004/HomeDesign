@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Modal, Input, Tabs, Empty, theme } from "antd";
+import { Modal, Input, Tabs, theme } from "antd";
 import {
     SearchOutlined,
     AppstoreOutlined,
@@ -8,18 +8,22 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAssets } from "../../../store/slices/assetSlice";
 import FurnitureGrid from "./FurnitureGrid";
+import RoomSelector from "./RoomSelector";
 import FurnitureUpload from "./FurnitureUpload";
 
 const FurniturePickerModal = ({ open, onClose, onSelect }) => {
     const dispatch = useDispatch();
     const { token } = theme.useToken();
+
     const items = useSelector((s) => s.assets.items.furniture || []);
     const loading = useSelector((s) => s.assets.loading.furniture);
 
+    const [selectedRoom, setSelectedRoom] = useState(null);
     const [filter, setFilter] = useState("");
     const [selectedModel, setSelectedModel] = useState(null);
     const [activeTab, setActiveTab] = useState("library");
 
+    // Load furniture assets
     useEffect(() => {
         if (open && items.length === 0) {
             dispatch(fetchAssets({ type: "furniture" }));
@@ -28,22 +32,28 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
 
     const filteredItems = useMemo(
         () =>
-            (items || []).filter((model) =>
-                model?.nameModel
-                    ?.toLowerCase?.()
-                    ?.includes(filter.toLowerCase())
+            items.filter((model) =>
+                model?.nameModel?.toLowerCase()?.includes(filter.toLowerCase())
             ),
         [items, filter]
     );
 
     const handleConfirm = () => {
-        if (selectedModel) {
-            onSelect?.(JSON.stringify(selectedModel));
-            onClose?.();
-            // Reset state sau khi add
-            setSelectedModel(null);
-            setFilter("");
-        }
+        if (!selectedModel || !selectedRoom) return;
+
+        onSelect?.(
+            JSON.stringify({
+                ...selectedModel,
+                roomId: selectedRoom,
+            })
+        );
+        console.log("for room:", selectedRoom);
+        onClose?.();
+
+        // Reset state
+        setSelectedModel(null);
+        setSelectedRoom(null);
+        setFilter("");
     };
 
     const itemsTabs = [
@@ -62,6 +72,13 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
                         height: "100%",
                     }}
                 >
+                    {/* Select Room */}
+                    <RoomSelector
+                        value={selectedRoom}
+                        onChange={setSelectedRoom}
+                    />
+
+                    {/* Search */}
                     <Input
                         prefix={
                             <SearchOutlined
@@ -76,8 +93,9 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
                         style={{ marginBottom: 16, borderRadius: 8 }}
                     />
 
+                    {/* Grid */}
                     <div
-                        style={{ flex: 1, overflow: "hidden", minHeight: 400 }}
+                        style={{ flex: 1, overflow: "hidden", minHeight: 380 }}
                     >
                         <FurnitureGrid
                             items={filteredItems}
@@ -110,11 +128,18 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
             onCancel={onClose}
             okText="Add to Scene"
             okButtonProps={{
-                disabled: !selectedModel || activeTab === "upload",
+                disabled:
+                    !selectedModel || !selectedRoom || activeTab === "upload",
             }}
             width={900}
             centered
-            bodyStyle={{ paddingTop: 10, height: 600, overflow: "hidden" }}
+            styles={{
+                body: {
+                    paddingTop: 10,
+                    height: 600,
+                    overflow: "hidden",
+                },
+            }}
         >
             <Tabs
                 activeKey={activeTab}

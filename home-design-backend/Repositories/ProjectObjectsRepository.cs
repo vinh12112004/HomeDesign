@@ -40,7 +40,6 @@ namespace home_design_backend.Repositories
             
             ProjectObject projectObject = _mapper.Map<ProjectObject>(dto);
             projectObject.ProjectId = projectId;
-            projectId = Guid.NewGuid();
             await _dbContext.AddAsync(projectObject);
             await _dbContext.SaveChangesAsync();
             return true;

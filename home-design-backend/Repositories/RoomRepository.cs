@@ -26,7 +26,12 @@ namespace home_design_backend.Repositories
             var roomDtos = _mapper.Map<List<RoomDTO.RoomDto>>(rooms);
             return roomDtos;
         }
-
+        public async Task<List<RoomDTO.RoomDto>> GetAllAsync()
+        {
+            var rooms = await _dbContext.Rooms.ToListAsync();
+            var roomDtos = _mapper.Map<List<RoomDTO.RoomDto>>(rooms);
+            return roomDtos;
+        }
         // Cập nhật Room
         public async Task<RoomDTO.RoomDto?> UpdateAsync(Guid id, RoomDTO.UpdateRoomDto updateDto)
         {

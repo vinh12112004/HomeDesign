@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from "react";
 import { TransformControls } from "@react-three/drei";
 import { useSelector, useDispatch } from "react-redux";
 import { useThree } from "@react-three/fiber";
-import { updateObject } from "../../store/slices/objectSlice";
+import { updateObjectLocal } from "../../store/slices/objectSlice";
+import { pushAction } from "../../store/slices/undoSlice";
 
 export default function TransformControlsManager() {
     const { selectedMesh, showTranformControls, transformMode } = useSelector(
@@ -37,25 +38,25 @@ export default function TransformControlsManager() {
 
         const onObjectChange = () => {
             if (transformControls.object) {
-                const pos = transformControls.object.position;
-                const rot = transformControls.object.rotation;
-                console.log(
-                    `🔄 Đang ${
-                        transformMode === "translate" ? "di chuyển" : "xoay"
-                    }:`,
-                    {
-                        position: {
-                            x: pos.x.toFixed(2),
-                            y: pos.y.toFixed(2),
-                            z: pos.z.toFixed(2),
-                        },
-                        rotation: {
-                            x: rot.x.toFixed(2),
-                            y: rot.y.toFixed(2),
-                            z: rot.z.toFixed(2),
-                        },
-                    }
-                );
+                // const pos = transformControls.object.position;
+                // const rot = transformControls.object.rotation;
+                // console.log(
+                //     `🔄 Đang ${
+                //         transformMode === "translate" ? "di chuyển" : "xoay"
+                //     }:`,
+                //     {
+                //         position: {
+                //             x: pos.x.toFixed(2),
+                //             y: pos.y.toFixed(2),
+                //             z: pos.z.toFixed(2),
+                //         },
+                //         rotation: {
+                //             x: rot.x.toFixed(2),
+                //             y: rot.y.toFixed(2),
+                //             z: rot.z.toFixed(2),
+                //         },
+                //     }
+                // );
             }
         };
 
@@ -168,10 +169,33 @@ export default function TransformControlsManager() {
             scaleJson: currentObject.scaleJson,
             metadataJson: currentObject.metadataJson,
         };
+        const beforeObject = { ...currentObject };
+        const afterObject = {
+            ...currentObject,
+            ...fullObjectData,
+        };
+        const samePosition =
+            JSON.stringify(oldPosition) ===
+            JSON.stringify(JSON.parse(afterObject.positionJson));
+
+        const sameRotation =
+            JSON.stringify(oldRotation) ===
+            JSON.stringify(JSON.parse(afterObject.rotationJson));
+
+        if (samePosition && sameRotation) return;
+
+        // lưu undo
+        dispatch(
+            pushAction({
+                type: "UPDATE_OBJECT",
+                before: beforeObject,
+                after: afterObject,
+            })
+        );
 
         // Dispatch update
         dispatch(
-            updateObject({
+            updateObjectLocal({
                 objectId: selectedMesh,
                 objectData: fullObjectData,
             })

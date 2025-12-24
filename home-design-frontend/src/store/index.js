@@ -5,6 +5,7 @@ import projectSlice from "./slices/projectSlice";
 import objectSlice from "./slices/objectSlice";
 import uiSlice from "./slices/uiSlice";
 import assetSlice from "./slices/assetSlice";
+import undoSlice from "./slices/undoSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { combineReducers } from "redux";
 import roomSlice from "./slices/roomSlice";
@@ -16,6 +17,7 @@ const rootReducer = combineReducers({
     ui: uiSlice,
     assets: assetSlice,
     rooms: roomSlice,
+    undo: undoSlice,
 });
 
 // Cấu hình persist

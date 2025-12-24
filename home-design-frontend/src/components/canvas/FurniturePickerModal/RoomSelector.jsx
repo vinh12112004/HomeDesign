@@ -16,12 +16,16 @@ const RoomSelector = ({ value, onChange }) => {
         }
     }, [currentProject?.id]);
 
+    const handleChange = (roomId) => {
+        const selectedRoom = rooms.find((r) => r.id === roomId);
+        onChange(selectedRoom); // Trả về toàn bộ object room thay vì chỉ id
+    };
     return (
         <Select
             placeholder="Select room"
             loading={loading}
-            value={value}
-            onChange={onChange}
+            value={value?.id}
+            onChange={handleChange}
             style={{ width: "100%", marginBottom: 16 }}
             options={rooms.map((r) => ({
                 label: r.name,

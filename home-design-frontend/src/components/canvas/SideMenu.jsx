@@ -143,19 +143,24 @@ const SideMenu = () => {
         } catch {
             parsed = { objPath: modelData };
         }
-        const { roomId, ...modelWithoutRoom } = parsed;
+        const { room, ...modelWithoutRoom } = parsed;
         const objectData = {
             type: "Furniture",
             assetKey: "model/obj",
-            positionJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
+            positionJson: JSON.stringify({
+                x: room?.offsetX || 0,
+                y: room?.offsetY || 0,
+                z: room?.offsetZ || 0,
+            }),
             rotationJson: JSON.stringify({ x: 0, y: 0, z: 0 }),
             scaleJson: JSON.stringify({ x: 0.01, y: 0.01, z: 0.01 }),
             metadataJson: JSON.stringify({
                 geometry: "model",
                 ...modelWithoutRoom,
             }),
-            roomId: roomId,
+            roomId: room?.id || null,
         };
+        console.log("Creating object with data:", objectData);
 
         try {
             const created = await dispatch(

@@ -44,7 +44,7 @@ const FurniturePickerModal = ({ open, onClose, onSelect }) => {
         onSelect?.(
             JSON.stringify({
                 ...selectedModel,
-                roomId: selectedRoom,
+                room: selectedRoom,
             })
         );
         console.log("for room:", selectedRoom);

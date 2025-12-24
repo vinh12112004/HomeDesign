@@ -44,6 +44,7 @@ export const createHole = createAsyncThunk(
 
 const initialState = {
     objects: [],
+    originalObjects: [],
     loading: false,
     isCreating: false,
     isUpdating: false,
@@ -58,6 +59,16 @@ const objectSlice = createSlice({
         clearObjects: (state) => {
             state.objects = [];
         },
+        updateObjectLocal: (state, action) => {
+            const { objectId, objectData } = action.payload;
+            const index = state.objects.findIndex((obj) => obj.id === objectId);
+            if (index !== -1) {
+                state.objects[index] = {
+                    ...state.objects[index],
+                    ...objectData,
+                };
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -67,6 +78,9 @@ const objectSlice = createSlice({
             .addCase(fetchObjects.fulfilled, (state, action) => {
                 state.loading = false;
                 state.objects = action.payload;
+                state.originalObjects = JSON.parse(
+                    JSON.stringify(action.payload)
+                );
             })
             .addCase(fetchObjects.rejected, (state, action) => {
                 state.loading = false;
@@ -102,5 +116,5 @@ const objectSlice = createSlice({
     },
 });
 
-export const { clearObjects } = objectSlice.actions;
+export const { clearObjects, updateObjectLocal } = objectSlice.actions;
 export default objectSlice.reducer;
